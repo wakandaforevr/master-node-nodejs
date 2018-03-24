@@ -1,5 +1,4 @@
 import { rinkeby, mainnet } from './eth'
-// import web3 from 'web3'
 import Tx from 'ethereumjs-tx';
 import {
   VPNSERVICE_ABI,
@@ -77,7 +76,6 @@ export const getvpnusage = (account_addr, index, cb) => {
 
 export const addVpnUsage = (from_addr, to_addr, sent_bytes, session_duration, amount, timestamp, cb) => {
   rinkeby.web3.eth.getBalance(COINBASE_ADDRESS, (err, balance) => {
-    console.log('balance', Number(balance))
   })
   try {
     let rawTx = {

@@ -19,7 +19,6 @@ function SentinelManager(net, name, address, abi) {
 }
 
 SentinelManager.prototype.getbalance = function (account_addr, cb) {
-  console.log('sent', this.net.web3.currentProvider)
   this.net.web3.eth.getBalance(account_addr,
     (err, balance) => {
       cb(err, balance)
