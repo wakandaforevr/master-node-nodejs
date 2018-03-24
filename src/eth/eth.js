@@ -21,18 +21,18 @@ function ETHManager(provider = null, RPC_url = null) {
   this.web3 = new Web3(new Web3.providers.HttpProvider(RPC_url));
 }
 
-ETHManager.prototype.createaccount = function (password, cb) {
+ETHManager.prototype.createAccount = function (password, cb) {
   try {
-    const private_key = hdkey.fromMasterSeed('random')._hdkey._privateKey
-    const wallet = Wallet.fromPrivateKey(private_key)
+    const privateKey = hdkey.fromMasterSeed('random')._hdkey._privateKey
+    const wallet = Wallet.fromPrivateKey(privateKey)
     const keystore = wallet.toV3String(password)
-    const keystore_data = JSON.parse(keystore);
-    const account_details = {
-      wallet_address: '0x' + keystore_data.address,
-      private_key: '0x' + private_key.toString('hex'),
-      keystore_data: keystore_data
+    const keystoreData = JSON.parse(keystore);
+    const accountDetails = {
+      walletAddress: '0x' + keystoreData.address,
+      privateKey: '0x' + privateKey.toString('hex'),
+      keystoreData: keystoreData
     }
-    cb(null, account_details)
+    cb(null, accountDetails)
   } catch (error) {
     cb(error, null);
   }
@@ -56,13 +56,13 @@ ETHManager.prototype.getaddress = function (private_key, cb) {
   }
 }
 
-ETHManager.prototype.getbalance = function (account_addr, cb) {
+ETHManager.prototype.getBalance = function (account_addr, cb) {
   this.web3.eth.getBalance(account_addr, (err, balance) => {
     cb(err, balance);
   })
 }
 
-ETHManager.prototype.sendrawtransaction = function (tx_data, cb) {
+ETHManager.prototype.sendRawTransaction = function (tx_data, cb) {
   this.web3.eth.sendRawTransaction(tx_data, (err, tx_hash) => {
     console.log('err', err, tx_hash, this.web3.currentProvider)
     if (err) cb(err, null);

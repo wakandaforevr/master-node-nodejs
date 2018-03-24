@@ -1,7 +1,7 @@
 import async from 'async';
 import uuid from 'uuid';
 import { dbs } from '../db/db';
-import * as eth_helper from '../helpers/eth'
+import * as EthHelper from '../helpers/eth'
 
 import { DECIMALS } from '../utils/config'
 
@@ -86,7 +86,7 @@ export const updateNodeInfo = (req, res) => {
       } else if (info['type'] == 'net_speed') {
         let net_speed = info['net_speed'];
 
-        db.nodes.findOneAndUpdate(
+        db.collection('nodes').findOneAndUpdate(
           { 'account.addr': account.addr, 'token': token },
           { '$set': { 'net_speed': net_speed } },
           (err, node) => {
@@ -96,7 +96,7 @@ export const updateNodeInfo = (req, res) => {
       } else if (info['type'] == 'vpn') {
         let init_time = parseInt(Date.now() / 1000)
 
-        db.nodes.findOneAndUpdate(
+        db.collection('nodes').findOneAndUpdate(
           { 'account.addr': account.addr, 'token': token },
           {
             '$set': {
@@ -112,7 +112,7 @@ export const updateNodeInfo = (req, res) => {
       } else if (info['type'] == 'alive') {
         let last_ping = parseInt(Date.now() / 1000)
 
-        db.nodes.findOneAndUpdate(
+        db.collection('nodes').findOneAndUpdate(
           { 'account.addr': account.addr, 'token': token },
           {
             '$set': {
@@ -198,7 +198,7 @@ export const UpdateConnections = (req, res) => {
                 let timestamp = Date.now() / 1000
 
                 if (sent_bytes >= 100 * 1024 * 1024) {
-                  eth_helper.addvpnusage(from_addr, to_addr, sent_bytes, session_duration, amount, timestamp, (err, tx_hash) => {
+                  EthHelper.addVpnUsage(from_addr, to_addr, sent_bytes, session_duration, amount, timestamp, (err, tx_hash) => {
                     if (err) errors.push(err)
                     else tx_hashes.push(tx_hash)
                     iterate()
@@ -254,22 +254,11 @@ export const deRegisterNode = (req, res) => {
               'message': 'Node deregistred successfully.'
             })
           }
-        }
-      )
+        })
     }
   ], (err, resp) => {
     if (err) res.send(err);
     else res.send(resp);
-  })
-}
-
-const get_client_address = (account_addr, cb) => {
-  dbs((err, dbo) => {
-    let db = dbo.db('mydb');
-    db.collection('connection').findOne({ 'server_addr': account_addr }, (err, _connection) => {
-      dbo.close();
-      cb(_connection['client_addr']);
-    });
   })
 }
 
@@ -289,7 +278,7 @@ export const addVpnUsage = (req, res) => {
     })
   }
 
-  eth_helper.addvpnusage(
+  EthHelper.addVpnUsage(
     from_addr, to_addr, sent_bytes, session_duration, amount, timestamp,
     (err, tx_hash) => {
       if (!err) {

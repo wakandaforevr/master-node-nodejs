@@ -18,7 +18,7 @@ function SentinelManager(net, name, address, abi) {
   this.contract = net.web3.eth.contract(abi).at(address)
 }
 
-SentinelManager.prototype.getbalance = function (account_addr, cb) {
+SentinelManager.prototype.getBalance = function (account_addr, cb) {
   this.net.web3.eth.getBalance(account_addr,
     (err, balance) => {
       cb(err, balance)

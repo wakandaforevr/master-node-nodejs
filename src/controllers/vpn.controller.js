@@ -63,14 +63,14 @@ export const getVpnCredentials = (req, res) => {
         next();
       })
     }, (next) => {
-      eth_helper.getbalances(account_addr,
+      eth_helper.getBalances(account_addr,
         (err, balances) => {
           if (err) next(err, null);
           else next(null, balances);
         })
     }, (balances, next) => {
       if (balances.test.sents >= 100) {
-        eth_helper.getdueamount(account_addr, (err, due_amount) => {
+        eth_helper.getDueAmount(account_addr, (err, due_amount) => {
           if (err) {
             next({
               'success': false,
@@ -126,7 +126,7 @@ export const getVpnCredentials = (req, res) => {
         next(null, node);
       }
     }, (node, next) => {
-      eth_helper.getinitialpayment(account_addr, (err, is_payed) => {
+      eth_helper.getInitialPayment(account_addr, (err, is_payed) => {
         if (err) {
           next({
             'success': false,
@@ -186,7 +186,7 @@ export const payVpnUsage = (req, res) => {
   amount = parseInt(amount * (DECIMALS * 1.0))
   console.log('in controller')
 
-  eth_helper.payvpnsession(from_addr, amount, session_id, net, tx_data, payment_type, (errors, tx_hashes) => {
+  eth_helper.payVpnSession(from_addr, amount, session_id, net, tx_data, payment_type, (errors, tx_hashes) => {
     if (errors.length > 0) {
       res.send({
         'success': false,
@@ -210,7 +210,7 @@ export const ReportPayment = (req, res) => {
   let amount = parseInt(req.body['amount'])
   let session_id = parseInt(req.body['session_id'])
 
-  vpn_manager.payvpnsession(from_addr, amount, session_id, (error, tx_hash) => {
+  vpn_manager.payVpnSession(from_addr, amount, session_id, (error, tx_hash) => {
     if (!error) {
       res.status(200).send({
         'success': true,
@@ -230,7 +230,7 @@ export const ReportPayment = (req, res) => {
 
 export const getVpnUsage = (req, res) => {
   let account_address = req.body['account_addr'];
-  eth_helper.getvpnusage(account_address, (err, usage) => {
+  eth_helper.getVpnUsage(account_address, (err, usage) => {
     if (!err) {
       res.send({
         'success': true,

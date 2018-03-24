@@ -1,14 +1,12 @@
 import async from 'async';
-import * as eth_helper from '../helpers/eth';
-import * as sentinel_manager from '../eth/sentinel_contract'
-
+import * as EthHelper from '../helpers/eth';
 
 export const createAccount = (req, res) => {
   let password = req.body['password'];
 
   async.waterfall([
     (next) => {
-      eth_helper.createaccount(password,
+      EthHelper.createAccount(password,
         (err, accountDetails) => {
           if (err) next(err, null)
           else next(null, accountDetails);
@@ -35,8 +33,8 @@ export const createAccount = (req, res) => {
 }
 
 export const getBalance = (req, res) => {
-  let account_addr = req.body['account_addr'];
-  eth_helper.getbalances(account_addr, (err, balances) => {
+  let accountAddr = req.body['account_addr'];
+  EthHelper.getBalances(accountAddr, (err, balances) => {
     if (err) {
       res.send({
         success: false,

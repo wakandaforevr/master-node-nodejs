@@ -4,13 +4,13 @@ import * as vpn_manager from '../eth/vpn_contract';
 
 import { DECIMALS, COINBASE_ADDRESS, COINBASE_PRIVATE_KEY } from '../utils/config';
 
-export const createaccount = (password, cb) => {
-  mainnet.createaccount(password, (err, account_details) => {
+export const createAccount = (password, cb) => {
+  mainnet.createAccount(password, (err, account_details) => {
     cb(err, account_details);
   });
 }
 
-export const getbalances = (account_addr, cb) => {
+export const getBalances = (account_addr, cb) => {
   let balances = {
     main: {
       eths: null,
@@ -23,13 +23,13 @@ export const getbalances = (account_addr, cb) => {
   }
 
   try {
-    mainnet.getbalance(account_addr, (err, balance) => {
+    mainnet.getBalance(account_addr, (err, balance) => {
       balances.main.eths = balance
-      sentinel_main.getbalance(account_addr, (err, balance) => {
+      sentinel_main.getBalance(account_addr, (err, balance) => {
         balances.main.sents = balance
-        rinkeby.getbalance(account_addr, (err, balance) => {
+        rinkeby.getBalance(account_addr, (err, balance) => {
           balances.test.eths = balance
-          sentinel_rinkeby.getbalance(account_addr, (err, balance) => {
+          sentinel_rinkeby.getBalance(account_addr, (err, balance) => {
             balances.test.sents = balance
             cb(null, balances);
           })
@@ -96,23 +96,23 @@ export const getaccountaddress = (private_key, cb) => {
     })
 }
 
-export const rawtransaction = (tx_data, net, cb) => {
+export const rawTransaction = (tx_data, net, cb) => {
   if (net == 'main') {
-    mainnet.sendrawtransaction(tx_data,
+    mainnet.sendRawTransaction(tx_data,
       (err, tx_hash) => {
         cb(err, tx_hash);
       })
   }
   else if (net == 'rinkeby') {
-    rinkeby.sendrawtransaction(tx_data,
+    rinkeby.sendRawTransaction(tx_data,
       (err, tx_hash) => {
         cb(err, tx_hash);
       })
   }
 }
 
-export const getdueamount = (account_addr, cb) => {
-  vpn_manager.getdueamount(account_addr,
+export const getDueAmount = (account_addr, cb) => {
+  vpn_manager.getDueAmount(account_addr,
     (err, dueamount) => {
       cb(err, dueamount);
     });
@@ -124,8 +124,8 @@ export const getvpnsessions = (account_addr, cb) => {
   })
 }
 
-export const getinitialpayment = (account_addr, cb) => {
-  vpn_manager.getinitialpayment(account_addr, (err, is_payed) => {
+export const getInitialPayment = (account_addr, cb) => {
+  vpn_manager.getInitialPayment(account_addr, (err, is_payed) => {
     cb(err, is_payed)
   })
 }
@@ -152,7 +152,7 @@ export const transferamount = (from_addr, to_addr, amount, unit, keystore, passw
   }
 }
 
-export const getvpnusage = (account_addr, cb) => {
+export const getVpnUsage = (account_addr, cb) => {
   let usage = {
     'due': 0,
     'stats': {
@@ -162,10 +162,10 @@ export const getvpnusage = (account_addr, cb) => {
     },
     'sessions': []
   }
-  vpn_manager.getvpnsessions(account_addr, (err, sessions) => {
+  vpn_manager.getVpnSessions(account_addr, (err, sessions) => {
     if (!err) {
       for (let index = 0; index < sessions; index++) {
-        vpn_manager.getvpnusage(account_addr, index, (error, _usage) => {
+        vpn_manager.getVpnUsage(account_addr, index, (error, _usage) => {
           if (!error) {
             if (!_usage[5])
               usage['due'] += _usage[3] / (DECIMALS * 1.0)
@@ -193,14 +193,14 @@ export const getvpnusage = (account_addr, cb) => {
   })
 }
 
-export const payvpnsession = (from_addr, amount, session_id, net, tx_data, payment_type, cb) => {
+export const payVpnSession = (from_addr, amount, session_id, net, tx_data, payment_type, cb) => {
   let errors = []
   let tx_hashes = []
   rawtransaction(tx_data, net, (err1, tx_hash1) => {
     if (!err1) {
       tx_hashes.push(tx_hash1)
       if (payment_type == 'normal') {
-        vpn_manager.payvpnsession(from_addr, amount, session_id, (err2, tx_hash2) => {
+        vpn_manager.payVpnSession(from_addr, amount, session_id, (err2, tx_hash2) => {
           if (!err2) {
             tx_hashes.push(tx_hash2)
             cb(errors, tx_hashes)
@@ -226,7 +226,7 @@ export const payvpnsession = (from_addr, amount, session_id, net, tx_data, payme
   })
 }
 
-export const addvpnusage = (from_addr, to_addr, sent_bytes, session_duration, amount, timestamp, cb) => {
+export const addVpnUsage = (from_addr, to_addr, sent_bytes, session_duration, amount, timestamp, cb) => {
   vpn_manager.addVpnUsage(from_addr, to_addr, sent_bytes, session_duration, amount, timestamp,
     (err, resp) => {
       cb(err, resp)
