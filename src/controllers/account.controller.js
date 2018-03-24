@@ -1,6 +1,6 @@
 import async from 'async';
-
-import * as eth_manager from '../eth/eth';
+import * as eth_helper from '../helpers/eth';
+import * as sentinel_manager from '../eth/sentinel_contract'
 
 
 export const createAccount = (req, res) => {
@@ -8,7 +8,7 @@ export const createAccount = (req, res) => {
 
   async.waterfall([
     (next) => {
-      eth_manager.createAccount(password,
+      eth_helper.createaccount(password,
         (err, accountDetails) => {
           if (err) next(err, null)
           else next(null, accountDetails);
@@ -17,10 +17,11 @@ export const createAccount = (req, res) => {
   ], (err, result) => {
     let message = {
       'success': false,
-      'error': error,
+      'error': err,
       'message': 'Error occurred while create wallet. Please try again.'
     };
     if (!err) {
+      res.status = 200;
       message = {
         'success': true,
         'account_addr': result.wallet_address,
@@ -29,28 +30,23 @@ export const createAccount = (req, res) => {
         'message': 'Account created successfully. Please store the Private key and Keystore data safely.'
       };
     }
-    res.status = 200;
     res.send(message);
   });
 }
 
 export const getBalance = (req, res) => {
-  let wallet_address = req.body['wallet_address'];
-
-  async.waterfall([
-    (next) => {
-      eth_manager.getBalance(wallet_address,
-        (err, result) => {
-          if (err) next(err, null);
-          else next(null, result);
-        });
+  let account_addr = req.body['account_addr'];
+  eth_helper.getbalances(account_addr, (err, balances) => {
+    if (err) {
+      res.send({
+        success: false,
+        message: 'error occured while checking balances'
+      })
+    } else {
+      res.status(200).send({
+        success: true,
+        balances: balances
+      })
     }
-  ], (err, result) => {
-    console.log(err, result);
-
-    if (err) res.send(err);
-    else res.send({
-      'balance': result
-    });
   })
 }
