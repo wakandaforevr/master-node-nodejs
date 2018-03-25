@@ -2,8 +2,8 @@ import async from 'async';
 import request from 'request';
 import uuid from 'uuid'
 
-import * as vpn_manager from '../eth/vpn_contract'
-import * as eth_helper from '../helpers/eth';
+import * as VpnManager from '../eth/vpn_contract'
+import * as EthHelper from '../helpers/eth';
 import { dbs } from '../db/db';
 import { SENT_BALANCE, VPNSERVICE_ADDRESS, DECIMALS } from '../utils/config';
 
@@ -15,8 +15,8 @@ export const getVpnsList = (req, res) => {
         '_id': 0,
         'account.addr': 1,
         'location': 1,
-        'net_speed.upload': 1,
-        'net_speed.download': 1
+        'netSpeed.upload': 1,
+        'netSpeed.download': 1
       }).toArray((err, list) => {
         if (err) res.send(err);
         else res.send({
@@ -28,14 +28,14 @@ export const getVpnsList = (req, res) => {
 }
 
 export const getCurrentVpnUsage = (req, res) => {
-  let account_addr = req.body['account_addr']
-  let session_name = req.body['session_name']
+  let accountAddr = req.body['accountAddr']
+  let sessionName = req.body['sessionName']
 
   dbs((err, dbo) => {
     let db = dbo.db('mydb')
     db.collection('connections').findOne({
-      client_addr: account_addr,
-      session_name: session_name
+      clientAddr: accountAddr,
+      sessionName: sessionName
     }, {
         _id: 0,
         usage: 1
@@ -47,9 +47,9 @@ export const getCurrentVpnUsage = (req, res) => {
 }
 
 export const getVpnCredentials = (req, res) => {
-  let account_addr = req.body['account_addr'];
-  let vpn_addr = req.body['vpn_addr'];
-  let vpn_addr_len = vpn_addr.length;
+  let accountAddr = req.body['accountAddr'];
+  let vpnAddr = req.body['vpnAddr'];
+  let vpnAddrLen = vpnAddr.length;
   let db = null;
 
   async.waterfall([
@@ -63,24 +63,24 @@ export const getVpnCredentials = (req, res) => {
         next();
       })
     }, (next) => {
-      eth_helper.getBalances(account_addr,
+      EthHelper.getBalances(accountAddr,
         (err, balances) => {
           if (err) next(err, null);
           else next(null, balances);
         })
     }, (balances, next) => {
       if (balances.test.sents >= 100) {
-        eth_helper.getDueAmount(account_addr, (err, due_amount) => {
+        EthHelper.getDueAmount(accountAddr, (err, dueAmount) => {
           if (err) {
             next({
               'success': false,
               'error': err,
               'message': 'Error occurred while checking the due amount.'
             }, null)
-          } else if (due_amount == 0) {
-            if (vpn_addr_len > 0) {
+          } else if (dueAmount == 0) {
+            if (vpnAddrLen > 0) {
               db.collection('nodes').findOne(
-                { 'account.addr': vpn_addr, 'vpn.status': 'up' },
+                { 'accountAddr': vpnAddr, 'vpn.status': 'up' },
                 { '_id': 0, 'token': 0 },
                 (err, node) => {
                   if (err) next(err, null);
@@ -99,7 +99,7 @@ export const getVpnCredentials = (req, res) => {
             next({
               'success': false,
               'message': 'You have due amount: ' +
-                due_amount / (DECIMALS * 1.0) + ' SENTs. Please try after clearing the due.'
+                dueAmount / (DECIMALS * 1.0) + ' SENTs. Please try after clearing the due.'
             }, null)
           }
         });
@@ -111,7 +111,7 @@ export const getVpnCredentials = (req, res) => {
       }
     }, (node, next) => {
       if (!node) {
-        if (vpn_addr_len) {
+        if (vpnAddrLen) {
           next({
             'success': false,
             'message': 'VPN server is already occupied. Please try after sometime.'
@@ -126,19 +126,19 @@ export const getVpnCredentials = (req, res) => {
         next(null, node);
       }
     }, (node, next) => {
-      eth_helper.getInitialPayment(account_addr, (err, is_payed) => {
+      EthHelper.getInitialPayment(accountAddr, (err, isPayed) => {
         if (err) {
           next({
             'success': false,
             'message': 'Error occurred while cheking initial payment status.'
           }, null)
-        } else if (is_payed) {
+        } else if (isPayed) {
           try {
             let token = uuid.v4();
             let ip = node.ip;
             let port = 3000;
             let body = {
-              account_addr: account_addr,
+              accountAddr: accountAddr,
               token: token
             };
             let url = 'http://' + ip + ':' + port + '/master/sendToken';
@@ -160,7 +160,7 @@ export const getVpnCredentials = (req, res) => {
         } else {
           next({
             'success': false,
-            'account_addr': vpn_addr,
+            'accountAddr': vpnAddr,
             'message': 'Initial payment status is empty.'
           }, null)
         }
@@ -175,46 +175,45 @@ export const getVpnCredentials = (req, res) => {
 }
 
 export const payVpnUsage = (req, res) => {
-  let from_addr = req.body['from_addr']
-  let amount = (typeof req.body['amount'] != 'undefined' && !req.body['amount']) ? req.body['amount'] : null
-  let session_id = (typeof req.body['session_id'] != 'undefined' && !req.body['session_id']) ? req.body['session_id'] : null
+  let fromAddr = req.body['fromAddr']
+  let amount = req.body['amount'] || null
+  let sessionId = req.body['sessionId'] || null
   let net = req.body['net']
-  let tx_data = req.body['tx_data']
-  let payment_type = req.body['payment_type']
+  let txData = req.body['txData']
+  let paymentType = req.body['paymentType']
 
-  session_id = parseInt(session_id)
+  sessionId = parseInt(sessionId)
   amount = parseInt(amount * (DECIMALS * 1.0))
-  console.log('in controller')
 
-  eth_helper.payVpnSession(from_addr, amount, session_id, net, tx_data, payment_type, (errors, tx_hashes) => {
+  EthHelper.payVpnSession(fromAddr, amount, sessionId, net, txData, paymentType, (errors, txHashes) => {
     if (errors.length > 0) {
       res.send({
         'success': false,
         'errors': errors,
-        'tx_hashes': tx_hashes,
+        'txHashes': txHashes,
         'message': 'Error occurred while paying VPN usage.'
       })
     } else {
       res.send({
         'success': true,
         'errors': errors,
-        'tx_hashes': tx_hashes,
+        'txHashes': txHashes,
         'message': 'VPN payment is completed successfully.'
       })
     }
   })
 }
 
-export const ReportPayment = (req, res) => {
-  let from_addr = req.body['from_addr']
+export const reportPayment = (req, res) => {
+  let fromAddr = req.body['from_addr']
   let amount = parseInt(req.body['amount'])
-  let session_id = parseInt(req.body['session_id'])
+  let sessionId = parseInt(req.body['session_id'])
 
-  vpn_manager.payVpnSession(from_addr, amount, session_id, (error, tx_hash) => {
+  VpnManager.payVpnSession(fromAddr, amount, sessionId, (error, txHash) => {
     if (!error) {
       res.status(200).send({
         'success': true,
-        'tx_hash': tx_hash,
+        'tx_hash': txHash,
         'message': 'Payment Done Successfully.'
       })
     } else {
@@ -229,8 +228,9 @@ export const ReportPayment = (req, res) => {
 }
 
 export const getVpnUsage = (req, res) => {
-  let account_address = req.body['account_addr'];
-  eth_helper.getVpnUsage(account_address, (err, usage) => {
+  let accountAddress = req.body['accountAddr'];
+
+  EthHelper.getVpnUsage(accountAddress, (err, usage) => {
     if (!err) {
       res.send({
         'success': true,
@@ -244,32 +244,4 @@ export const getVpnUsage = (req, res) => {
       })
     }
   });
-}
-
-export const PutClientConnection = (req, res) => {
-  let server_addr = req.body['vpn_addr'];
-  let client_addr = req.body['account_addr'];
-  dbs((err, dbo) => {
-    let db = dbo.db('mydb');
-    db.collection('connection').findOne({ 'server_addr': server_addr }, (err, resp) => {
-      console.log('resp :', resp)
-      if (!resp) {
-        db.collection('connection').insertOne({
-          'server_addr': server_addr,
-          'client_addr': client_addr
-        }, (err, resp) => {
-          if (err) res.send(err);
-          else res.send({ 'success': true });
-        })
-      } else {
-        db.collection('connection').findOneAndUpdate(
-          { 'server_addr': server_addr },
-          { '$set': { 'client_addr': client_addr } },
-          (err, resp) => {
-            if (err) res.send(err);
-            else res.send({ 'success': true });
-          })
-      }
-    });
-  })
 }

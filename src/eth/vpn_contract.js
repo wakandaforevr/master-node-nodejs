@@ -10,53 +10,57 @@ import {
 
 let VPN = rinkeby.web3.eth.contract(VPNSERVICE_ABI).at(VPNSERVICE_ADDRESS);
 
-export const payVpnSession = (account_addr, amount, session_id, cb) => {
+export const payVpnSession = (accountAddr, amount, sessionId, cb) => {
   let rawTx = {
     nonce: rinkeby.web3.toHex(500000),
     gasPrice: rinkeby.web3.toHex(5000000000),
     gasLimit: rinkeby.web3.toHex(500000),
     to: VPNSERVICE_ADDRESS,
     value: '0x0',
-    data: VPN.payVpnSession.getData(account_addr, amount, session_id)
+    data: VPN.payVpnSession.getData(accountAddr, amount, sessionId)
   }
+
   let tx = new Tx(rawTx);
   tx.sign(Buffer.from(COINBASE_PRIVATE_KEY, 'hex'));
-  var serializedTx = tx.serialize();
-  rinkeby.web3.eth.sendRawTransaction('0x' + serializedTx.toString('hex'), (err, tx_hash) => {
-    cb(err, tx_hash)
+  let serializedTx = tx.serialize();
+  
+  rinkeby.web3.eth.sendRawTransaction('0x' + serializedTx.toString('hex'), (err, txHash) => {
+    cb(err, txHash)
   })
 }
 
-export const setinitialpayment = (account_addr, is_payed = true) => {
+export const setInitialPayment = (accountAddr, isPayed = true) => {
   let rawTx = {
     nonce: rinkeby.web3.toHex(500000),
     gasPrice: rinkeby.web3.toHex(5000000000),
     gasLimit: rinkeby.web3.toHex(500000),
     to: VPNSERVICE_ADDRESS,
     value: '0x0',
-    data: VPN.setInitialPaymentOf.getData(account_addr, is_payed)
+    data: VPN.setInitialPaymentOf.getData(accountAddr, isPayed)
   }
+
   let tx = new Tx(rawTx);
   tx.sign(new Buffer(COINBASE_PRIVATE_KEY));
   let serializedTx = tx.serialize();
-  rinkeby.web3.eth.sendRawTransaction('0x' + serializedTx.toString('hex'), (err, tx_hash) => {
-    cb(err, tx_hash)
+
+  rinkeby.web3.eth.sendRawTransaction('0x' + serializedTx.toString('hex'), (err, txHash) => {
+    cb(err, txHash)
   })
 }
 
-export const getDueAmount = (account_addr, cb) => {
-  VPN.getDueAmountOf(account_addr, { from: COINBASE_ADDRESS },
+export const getDueAmount = (accountAddr, cb) => {
+  VPN.getDueAmountOf(accountAddr, { from: COINBASE_ADDRESS },
     (err, rawDueAmount) => {
-      let due_amount = Number(rawDueAmount.c[0]);
-      due_amount = due_amount / Math.pow(10, 18);
-      cb(err, due_amount)
+      let dueAmount = Number(rawDueAmount);
+      dueAmount = dueAmount / Math.pow(10, 18);
+      cb(err, dueAmount)
     });
 }
 
-export const getVpnSessions = (account_addr, cb) => {
-  VPN.getVpnSessionsOf(account_addr, { from: COINBASE_ADDRESS },
+export const getVpnSessions = (accountAddr, cb) => {
+  VPN.getVpnSessionsOf(accountAddr, { from: COINBASE_ADDRESS },
     (err, rawSessions) => {
-      let sessions = Number(rawSessions.c[0]);
+      let sessions = Number(rawSessions);
       cb(err, sessions)
     });
 }
@@ -68,15 +72,13 @@ export const getInitialPayment = (account_addr, cb) => {
     })
 }
 
-export const getVpnUsage = (account_addr, index, cb) => {
-  VPN.getVpnUsageOf(account_addr, index, { from: COINBASE_ADDRESS }, (err, usage) => {
+export const getVpnUsage = (accountAddr, index, cb) => {
+  VPN.getVpnUsageOf(accountAddr, index, { from: COINBASE_ADDRESS }, (err, usage) => {
     cb(err, usage)
   })
 }
 
-export const addVpnUsage = (from_addr, to_addr, sent_bytes, session_duration, amount, timestamp, cb) => {
-  rinkeby.web3.eth.getBalance(COINBASE_ADDRESS, (err, balance) => {
-  })
+export const addVpnUsage = (fromAddr, toAddr, sentBytes, sessionDuration, amount, timeStamp, cb) => {
   try {
     let rawTx = {
       nonce: rinkeby.web3.toHex(500000),
@@ -84,12 +86,13 @@ export const addVpnUsage = (from_addr, to_addr, sent_bytes, session_duration, am
       gasLimit: rinkeby.web3.toHex(500000),
       to: VPNSERVICE_ADDRESS,
       value: '0x0',
-      data: VPN.addVpnUsage.getData(from_addr, to_addr, sent_bytes, session_duration, amount, timestamp)
+      data: VPN.addVpnUsage.getData(fromAddr, toAddr, sentBytes, sessionDuration, amount, timeStamp)
     }
 
     let tx = new Tx(rawTx);
     tx.sign(Buffer.from(COINBASE_PRIVATE_KEY, 'hex'));
     let serializedTx = tx.serialize();
+
     rinkeby.web3.eth.sendRawTransaction('0x' + serializedTx.toString('hex'),
       (err, txHash) => {
         if (err) cb(err, null);

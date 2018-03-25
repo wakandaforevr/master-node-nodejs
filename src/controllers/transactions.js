@@ -1,10 +1,10 @@
-import * as eth_helper from '../helpers/eth';
+import * as EthHelper from '../helpers/eth';
 
 export const rawTransaction = (req, res) => {
-  let tx_data = req.body['tx_data'];
+  let txData = req.body['txData'];
   let net = req.body['net'];
 
-  eth_helper.rawTransaction(tx_data, net, (err, tx_hash) => {
+  EthHelper.rawTransaction(txData, net, (err, txHash) => {
     if (err) {
       res.send({
         'success': false,
@@ -14,7 +14,7 @@ export const rawTransaction = (req, res) => {
     } else {
       res.send({
         'success': true,
-        'tx_hash': tx_hash,
+        'txHash': txHash,
         'message': 'Transaction initiated successfully.'
       })
     }

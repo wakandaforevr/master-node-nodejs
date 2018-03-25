@@ -1,16 +1,16 @@
 import { ETHManager, rinkeby, mainnet } from '../eth/eth';
-import { sentinel_main, sentinel_rinkeby } from '../eth/sentinel_contract';
-import * as vpn_manager from '../eth/vpn_contract';
+import { SentinelMain, SentinelRinkeby } from '../eth/sentinel_contract';
+import * as VpnManager from '../eth/vpn_contract';
 
 import { DECIMALS, COINBASE_ADDRESS, COINBASE_PRIVATE_KEY } from '../utils/config';
 
 export const createAccount = (password, cb) => {
-  mainnet.createAccount(password, (err, account_details) => {
-    cb(err, account_details);
+  mainnet.createAccount(password, (err, accountDetails) => {
+    cb(err, accountDetails);
   });
 }
 
-export const getBalances = (account_addr, cb) => {
+export const getBalances = (accountAddr, cb) => {
   let balances = {
     main: {
       eths: null,
@@ -23,13 +23,13 @@ export const getBalances = (account_addr, cb) => {
   }
 
   try {
-    mainnet.getBalance(account_addr, (err, balance) => {
+    mainnet.getBalance(accountAddr, (err, balance) => {
       balances.main.eths = balance
-      sentinel_main.getBalance(account_addr, (err, balance) => {
+      SentinelMain.getBalance(accountAddr, (err, balance) => {
         balances.main.sents = balance
-        rinkeby.getBalance(account_addr, (err, balance) => {
+        rinkeby.getBalance(accountAddr, (err, balance) => {
           balances.test.eths = balance
-          sentinel_rinkeby.getBalance(account_addr, (err, balance) => {
+          SentinelRinkeby.getBalance(accountAddr, (err, balance) => {
             balances.test.sents = balance
             cb(null, balances);
           })
@@ -41,109 +41,109 @@ export const getBalances = (account_addr, cb) => {
   }
 }
 
-export const transfersents = (from_addr, to_addr, amount, private_key, net, cb) => {
+export const transferSents = (fromAddr, toAddr, amount, privateKey, net, cb) => {
   if (net == 'main') {
-    sentinel_main.transferamount(from_addr, to_addr, amount, private_key, (err, tx_hash) => {
-      cb(err, tx_hash)
+    SentinelMain.transferAmount(fromAddr, toAddr, amount, privateKey, (err, txHash) => {
+      cb(err, txHash)
     })
   } else if (net == 'rinkeby') {
-    sentinel_rinkeby.transferamount(from_addr, to_addr, amount, private_key, (err, tx_hash) => {
-      cb(err, tx_hash)
+    SentinelRinkeby.transferAmount(fromAddr, toAddr, amount, privateKey, (err, txHash) => {
+      cb(err, txHash)
     })
   }
 }
 
-export const transfereths = (from_addr, to_addr, amount, private_key, net, cb) => {
+export const transferEths = (fromAddr, toAddr, amount, privateKey, net, cb) => {
   if (net == 'main') {
-    mainnet.transferamount(from_addr, to_addr, amount, private_key, (err, tx_hash) => {
-      cb(err, tx_hash)
+    mainnet.transferAmount(fromAddr, toAddr, amount, privateKey, (err, txHash) => {
+      cb(err, txHash)
     })
   } else if (net == 'rinkeby') {
-    rinkeby.transferamount(from_addr, to_addr, amount, private_key, (err, tx_hash) => {
-      cb(err, tx_hash)
+    rinkeby.transferAmount(fromAddr, toAddr, amount, privateKey, (err, txHash) => {
+      cb(err, txHash)
     })
   }
 }
 
-export const free = (to_addr, eths, sents, cb) => {
-  let errors = [], tx_hashes = []
+export const free = (toAddr, eths, sents, cb) => {
+  let errors = [], txHashes = []
 
   let PRIVATE_KEY = Buffer.from(COINBASE_PRIVATE_KEY, 'hex');
-  transfereths(COINBASE_ADDRESS, to_addr, eths, PRIVATE_KEY, 'rinkeby', (err, tx_hash) => {
+  transferEths(COINBASE_ADDRESS, toAddr, eths, PRIVATE_KEY, 'rinkeby', (err, txHash) => {
     if (!err) {
-      tx_hashes.push(tx_hash);
-      transfersents(COINBASE_ADDRESS, to_addr, eths, PRIVATE_KEY, 'rinkeby', (err, tx_hash) => {
+      txHashes.push(txHash);
+      transferSents(COINBASE_ADDRESS, toAddr, eths, PRIVATE_KEY, 'rinkeby', (err, txHash) => {
         if (!err) {
-          tx_hashes.push(tx_hash);
-          cb(errors, tx_hashes);
+          txHashes.push(txHash);
+          cb(errors, txHashes);
         } else {
           errors.push(errors);
-          cb(errors, tx_hashes);
+          cb(errors, txHashes);
         }
       })
     } else {
       errors.push(err);
-      cb(errors, tx_hashes);
+      cb(errors, txHashes);
     }
   });
 }
 
-export const getaccountaddress = (private_key, cb) => {
-  mainnet.getaddress(private_key,
+export const getaccountaddress = (privateKey, cb) => {
+  mainnet.getaddress(privateKey,
     (err, address) => {
-      let account_address = address.substr(2)
-      cb(null, account_address)
+      let accountAddress = address.substr(2)
+      cb(null, accountAddress)
     })
 }
 
-export const rawTransaction = (tx_data, net, cb) => {
+export const rawTransaction = (txData, net, cb) => {
   if (net == 'main') {
-    mainnet.sendRawTransaction(tx_data,
-      (err, tx_hash) => {
-        cb(err, tx_hash);
+    mainnet.sendRawTransaction(txData,
+      (err, txHash) => {
+        cb(err, txHash);
       })
   }
   else if (net == 'rinkeby') {
-    rinkeby.sendRawTransaction(tx_data,
-      (err, tx_hash) => {
-        cb(err, tx_hash);
+    rinkeby.sendRawTransaction(txData,
+      (err, txHash) => {
+        cb(err, txHash);
       })
   }
 }
 
-export const getDueAmount = (account_addr, cb) => {
-  vpn_manager.getDueAmount(account_addr,
-    (err, dueamount) => {
-      cb(err, dueamount);
+export const getDueAmount = (accountAddr, cb) => {
+  VpnManager.getDueAmount(accountAddr,
+    (err, dueAmount) => {
+      cb(err, dueAmount);
     });
 }
 
 export const getvpnsessions = (account_addr, cb) => {
-  vpn_manager.getvpnsessions(account_addr, (err, sessions) => {
+  VpnManager.getvpnsessions(account_addr, (err, sessions) => {
     cb(err, sessions);
   })
 }
 
-export const getInitialPayment = (account_addr, cb) => {
-  vpn_manager.getInitialPayment(account_addr, (err, is_payed) => {
-    cb(err, is_payed)
+export const getInitialPayment = (accountAddr, cb) => {
+  VpnManager.getInitialPayment(accountAddr, (err, isPayed) => {
+    cb(err, isPayed)
   })
 }
 
-export const transferamount = (from_addr, to_addr, amount, unit, keystore, password, private_key = null, cb) => {
-  if (!private_key) {
+export const transferAmount = (fromAddr, toAddr, amount, unit, keystore, password, privateKey = null, cb) => {
+  if (!privateKey) {
     ETHManager.getprivatekey(keystore, password,
       (err, privateKey) => {
-        private_key = privateKey
+        privateKey = privateKey
         if (err)
           return cb(err, null)
         if (unit == 'ETH') {
-          ETHManager.transferamount(from_addr, to_addr, amount, private_key,
+          ETHManager.transferAmount(fromAddr, toAddr, amount, privateKey,
             (err, resp) => {
               cb(err, resp)
             })
         } else {
-          sentinel_manager.transferamount(from_addr, to_addr, amount, private_key,
+          SentinelMain.transferAmount(fromAddr, toAddr, amount, privateKey,
             (err, resp) => {
               cb(err, resp);
             })
@@ -152,34 +152,34 @@ export const transferamount = (from_addr, to_addr, amount, unit, keystore, passw
   }
 }
 
-export const getVpnUsage = (account_addr, cb) => {
+export const getVpnUsage = (accountAddr, cb) => {
   let usage = {
     'due': 0,
     'stats': {
-      'received_bytes': 0,
+      'receivedBytes': 0,
       'duration': 0,
       'amount': 0
     },
     'sessions': []
   }
-  vpn_manager.getVpnSessions(account_addr, (err, sessions) => {
+  VpnManager.getVpnSessions(accountAddr, (err, sessions) => {
     if (!err) {
       for (let index = 0; index < sessions; index++) {
-        vpn_manager.getVpnUsage(account_addr, index, (error, _usage) => {
+        VpnManager.getVpnUsage(accountAddr, index, (error, _usage) => {
           if (!error) {
             if (!_usage[5])
               usage['due'] += _usage[3] / (DECIMALS * 1.0)
-            usage['stats']['received_bytes'] += _usage[1]
+            usage['stats']['receivedBytes'] += _usage[1]
             usage['stats']['duration'] += _usage[2]
             usage['stats']['amount'] += _usage[3] / (DECIMALS * 1.0)
             usage['sessions'].append({
               'id': index,
-              'account_addr': _usage[0],
-              'received_bytes': _usage[1],
+              'accountAddr': _usage[0],
+              'receivedBytes': _usage[1],
               'duration': _usage[2],
               'amount': _usage[3] / (DECIMALS * 1.0),
-              'timestamp': _usage[4],
-              'is_payed': _usage[5]
+              'timeStamp': _usage[4],
+              'isPayed': _usage[5]
             })
           } else {
             cb(error, null)
@@ -193,30 +193,30 @@ export const getVpnUsage = (account_addr, cb) => {
   })
 }
 
-export const payVpnSession = (from_addr, amount, session_id, net, tx_data, payment_type, cb) => {
+export const payVpnSession = (fromAddr, amount, sessionId, net, txData, paymentType, cb) => {
   let errors = []
-  let tx_hashes = []
-  rawtransaction(tx_data, net, (err1, tx_hash1) => {
+  let txHashes = []
+  rawTransaction(txData, net, (err1, txHash1) => {
     if (!err1) {
-      tx_hashes.push(tx_hash1)
-      if (payment_type == 'normal') {
-        vpn_manager.payVpnSession(from_addr, amount, session_id, (err2, tx_hash2) => {
+      txHashes.push(txHash1)
+      if (paymentType == 'normal') {
+        VpnManager.payVpnSession(fromAddr, amount, sessionId, (err2, txHash2) => {
           if (!err2) {
-            tx_hashes.push(tx_hash2)
-            cb(errors, tx_hashes)
+            txHashes.push(txHash2)
+            cb(errors, txHashes)
           } else {
             errors.push(err2)
-            cb(errors, tx_hashes)
+            cb(errors, txHashes)
           }
         })
-      } else if (payment_type == 'init') {
-        vpn_manager.setinitialpayment(from_addr, (err2, tx_hash2) => {
+      } else if (paymentType == 'init') {
+        VpnManager.setInitialPayment(fromAddr, (err2, txHash2) => {
           if (!err2) {
-            tx_hashes.push(tx_hash2)
-            cb(errors, tx_hashes)
+            txHashes.push(txHash2)
+            cb(errors, txHashes)
           } else {
             errors.push(err2)
-            cb(errors, tx_hashes)
+            cb(errors, txHashes)
           }
         })
       }
@@ -226,8 +226,8 @@ export const payVpnSession = (from_addr, amount, session_id, net, tx_data, payme
   })
 }
 
-export const addVpnUsage = (from_addr, to_addr, sent_bytes, session_duration, amount, timestamp, cb) => {
-  vpn_manager.addVpnUsage(from_addr, to_addr, sent_bytes, session_duration, amount, timestamp,
+export const addVpnUsage = (fromAddr, toAddr, sentBytes, sessionDuration, amount, timeStamp, cb) => {
+  VpnManager.addVpnUsage(fromAddr, toAddr, sentBytes, sessionDuration, amount, timeStamp,
     (err, resp) => {
       cb(err, resp)
     })

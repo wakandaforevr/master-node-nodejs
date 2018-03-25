@@ -6,13 +6,12 @@ import * as EthHelper from '../helpers/eth'
 import { DECIMALS } from '../utils/config'
 
 export const registerNode = (req, res) => {
-  let account_addr = req.body['account_addr']
+  let accountAddr = req.body['accountAddr']
   let ip = req.body['ip']
   let location = req.body['location']
-  let net_speed = req.body['net_speed']
+  let netSpeed = req.body['netSpeed']
   let vpn = req.body['vpn']
   let token = uuid.v4();
-
   let db = null
 
   async.waterfall([
@@ -23,7 +22,7 @@ export const registerNode = (req, res) => {
         next();
       })
     }, (next => {
-      db.collection('nodes').findOne({ account_addr: account_addr }, (err, node) => {
+      db.collection('nodes').findOne({ accountAddr: accountAddr }, (err, node) => {
         if (!node) next()
         else next({
           'success': false,
@@ -32,11 +31,11 @@ export const registerNode = (req, res) => {
       })
     }), (next) => {
       db.collection('nodes').insertOne({
-        'account_addr': account_addr,
+        'accountAddr': accountAddr,
         'token': token,
         'location': location,
         'ip': ip,
-        'net_speed': net_speed
+        'netSpeed': netSpeed
       }, (err, resp) => {
         if (err) {
           next({
@@ -62,7 +61,7 @@ export const registerNode = (req, res) => {
 
 export const updateNodeInfo = (req, res) => {
   let token = req.body['token'];
-  let account_addr = req.body['account_addr'];
+  let accountAddr = req.body['accountAddr'];
   let info = req.body['info'];
 
   async.waterfall([
@@ -77,32 +76,32 @@ export const updateNodeInfo = (req, res) => {
         let location = info['location'];
 
         db.collection('nodes').findOneAndUpdate(
-          { 'account.addr': account.addr, 'token': token },
+          { 'accountAddr': accountAddr, 'token': token },
           { '$set': { 'location': location } },
           (err, node) => {
             if (err) next(err, null);
             else next(null, node);
           })
-      } else if (info['type'] == 'net_speed') {
-        let net_speed = info['net_speed'];
+      } else if (info['type'] == 'netSpeed') {
+        let netSpeed = info['netSpeed'];
 
         db.collection('nodes').findOneAndUpdate(
-          { 'account.addr': account.addr, 'token': token },
-          { '$set': { 'net_speed': net_speed } },
+          { 'accountAddr': accountAddr, 'token': token },
+          { '$set': { 'netSpeed': netSpeed } },
           (err, node) => {
             if (err) next(err, null);
             else next(null, node);
           })
       } else if (info['type'] == 'vpn') {
-        let init_time = parseInt(Date.now() / 1000)
+        let initTime = parseInt(Date.now() / 1000)
 
         db.collection('nodes').findOneAndUpdate(
-          { 'account.addr': account.addr, 'token': token },
+          { 'accountAddr': accountAddr, 'token': token },
           {
             '$set': {
               'vpn.status': 'up',
-              'vpn.init_time': init_time,
-              'vpn.last_ping': init_time
+              'vpn.initTime': initTime,
+              'vpn.lastPing': initTime
             }
           },
           (err, node) => {
@@ -110,14 +109,14 @@ export const updateNodeInfo = (req, res) => {
             else next(null, node);
           })
       } else if (info['type'] == 'alive') {
-        let last_ping = parseInt(Date.now() / 1000)
+        let lastPing = parseInt(Date.now() / 1000)
 
         db.collection('nodes').findOneAndUpdate(
-          { 'account.addr': account.addr, 'token': token },
+          { 'accountAddr': accountAddr, 'token': token },
           {
             '$set': {
               'vpn.status': 'up',
-              'vpn.last_ping': init_time
+              'vpn.lastPing': lastPing
             }
           },
           (err, node) => {
@@ -146,9 +145,9 @@ export const updateNodeInfo = (req, res) => {
   })
 }
 
-export const UpdateConnections = (req, res) => {
+export const updateConnections = (req, res) => {
   let token = req.body['token']
-  let account_addr = req.body['account_addr']
+  let accountAddr = req.body['accountAddr']
   let connections = req.body['connections']
   let db = null
 
@@ -161,7 +160,7 @@ export const UpdateConnections = (req, res) => {
       })
     }, (next) => {
       db.collection('nodes').findOne({
-        account_addr: account_addr,
+        accountAddr: accountAddr,
         token: token
       }, (err, node) => {
         if (err) next(err, null)
@@ -169,49 +168,51 @@ export const UpdateConnections = (req, res) => {
       })
     }, (node, next) => {
       if (node) {
-        let tx_hashes = []
+        let txHashes = []
         let errors = []
         async.eachSeries(connections, (info, iterate) => {
-          info['account_addr'] = account_addr
-          db.collection('connections').findOne({
-            'account_addr': account_addr,
-            'session_name': info['session_name']
-          }, (err, connection) => {
-            if (!connection) {
-              db.collection('connections').insertOne(info)
-            } else {
-              db.collection('connections').findOneAndUpdate({
-                'account_addr': account_addr,
-                'session_name': info['session_name']
-              }, {
-                  $set: {
-                    'usage': info['usage'],
-                    'end_time': (typeof (info['usage']) != 'undefined') ? info['usage'] : null
-                  }
-                })
-              if (typeof (info['end_time']) != 'undefined' && !info['end_time']) {
-                let from_addr = account_addr
-                let to_addr = connection['client_addr']
-                let sent_bytes = parseInt(info['usage']['down'])
-                let session_duration = parseInt(info['end_time']) - parseInt(connection['start_time'])
-                let amount = (sent_bytes / (1024 * 1024 * 1024.0)) * 100.0
-                let timestamp = Date.now() / 1000
-
-                if (sent_bytes >= 100 * 1024 * 1024) {
-                  EthHelper.addVpnUsage(from_addr, to_addr, sent_bytes, session_duration, amount, timestamp, (err, tx_hash) => {
-                    if (err) errors.push(err)
-                    else tx_hashes.push(tx_hash)
-                    iterate()
+          setTimeout(() => {
+            info['accountAddr'] = accountAddr
+            db.collection('connections').findOne({
+              'accountAddr': accountAddr,
+              'sessionName': info['sessionName']
+            }, (err, connection) => {
+              if (!connection) {
+                db.collection('connections').insertOne(info)
+              } else {
+                db.collection('connections').findOneAndUpdate({
+                  'accountAddr': accountAddr,
+                  'sessionName': info['sessionName']
+                }, {
+                    $set: {
+                      'usage': info['usage'],
+                      'endTime': info['usage'] || null //(typeof (info['usage']) != 'undefined') ? info['usage'] : null
+                    }
                   })
+                if (typeof (info['endTime']) != 'undefined' && !info['endTime']) {
+                  let fromAddr = accountAddr
+                  let toAddr = connection['clientAddr']
+                  let sentBytes = parseInt(info['usage']['down'])
+                  let sessionDuration = parseInt(info['endTime']) - parseInt(connection['startTime'])
+                  let amount = (sentBytes / (1024 * 1024 * 1024.0)) * 100.0
+                  let timeStamp = Date.now() / 1000
+
+                  if (sentBytes >= 100 * 1024 * 1024) {
+                    EthHelper.addVpnUsage(fromAddr, toAddr, sentBytes, sessionDuration, amount, timeStamp, (err, tx_hash) => {
+                      if (err) errors.push(err)
+                      else txHashes.push(tx_hash)
+                      iterate()
+                    })
+                  }
                 }
               }
-            }
-          })
+            })
+          }, 0)
         }, () => {
           next(null, {
             'success': true,
             'message': 'Connection details updated successfully.',
-            'tx_hashes': tx_hashes,
+            'txHashes': txHashes,
             'errors': errors
           })
         })
@@ -229,7 +230,7 @@ export const UpdateConnections = (req, res) => {
 }
 
 export const deRegisterNode = (req, res) => {
-  let account_addr = req.body['account_addr'];
+  let accountAddr = req.body['accountAddr'];
   let token = req.body['token'];
 
   async.waterfall([
@@ -241,7 +242,7 @@ export const deRegisterNode = (req, res) => {
       })
     }, (db, next) => {
       db.collection('nodes').findOneAndDelete(
-        { 'account.addr': account_addr, 'token': token },
+        { 'accountAddr': accountAddr, 'token': token },
         (err, node) => {
           if (!node.value) {
             next({
@@ -263,14 +264,14 @@ export const deRegisterNode = (req, res) => {
 }
 
 export const addVpnUsage = (req, res) => {
-  let from_addr = req.body['from_addr']
-  let to_addr = req.body['to_addr']
-  let sent_bytes = parseInt(req.body['sent_bytes'])
-  let session_duration = parseInt(req.body['session_duration'])
-  let amount = parseInt((sent_bytes / (1024.0 * 1024.0 * 1024.0)) * 100.0 * DECIMALS)
-  let timestamp = parseInt(Date.now() / 1000)
+  let fromAddr = req.body['fromAddr']
+  let toAddr = req.body['toAddr']
+  let sentBytes = parseInt(req.body['sentBytes'])
+  let sessionDuration = parseInt(req.body['sessionDuration'])
+  let amount = parseInt((sentBytes / (1024.0 * 1024.0 * 1024.0)) * 100.0 * DECIMALS)
+  let timeStamp = parseInt(Date.now() / 1000)
 
-  if (sent_bytes <= 100 * 1024 * 1024) {
+  if (sentBytes <= 100 * 1024 * 1024) {
     res.send({
       'success': false,
       'error': 'Usage is less than 100 MB. So data is not added',
@@ -279,12 +280,12 @@ export const addVpnUsage = (req, res) => {
   }
 
   EthHelper.addVpnUsage(
-    from_addr, to_addr, sent_bytes, session_duration, amount, timestamp,
-    (err, tx_hash) => {
+    fromAddr, toAddr, sentBytes, sessionDuration, amount, timeStamp,
+    (err, txHash) => {
       if (!err) {
         res.send({
           'success': true,
-          'tx_hash': tx_hash,
+          'txHash': txHash,
           'message': 'VPN usage data will be added soon.'
         })
       } else {

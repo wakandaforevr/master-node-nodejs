@@ -29,7 +29,6 @@ export default function logErrorService(err, req, res, next) {
   }
 
   if (isDev) {
-    console.log('constants raven id', constants.RAVEN_ID);
     const raven = new Raven.Client(constants.RAVEN_ID);
     raven.captureException(err);
     /* const pe = new PrettyError();

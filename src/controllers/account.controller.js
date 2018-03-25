@@ -22,9 +22,9 @@ export const createAccount = (req, res) => {
       res.status = 200;
       message = {
         'success': true,
-        'account_addr': result.wallet_address,
-        'private_key': result.private_key,
-        'keystore': result.keystore_data,
+        'accountAddr': result.walletAddress,
+        'privateKey': result.privateKey,
+        'keyStore': result.keystoreData,
         'message': 'Account created successfully. Please store the Private key and Keystore data safely.'
       };
     }
@@ -33,7 +33,7 @@ export const createAccount = (req, res) => {
 }
 
 export const getBalance = (req, res) => {
-  let accountAddr = req.body['account_addr'];
+  let accountAddr = req.body['accountAddr'];
   EthHelper.getBalances(accountAddr, (err, balances) => {
     if (err) {
       res.send({

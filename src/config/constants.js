@@ -27,7 +27,7 @@ const prodConfig = {
 
 const defaultConfig = {
   PORT: process.env.PORT || 3000,
-  RAVEN_ID: process.env.RAVEN_ID || 'https://ac48b26109634081b947150ce8df3def:e9c96b8380e04b5abca55f67ea07af5c@sentry.io/535069',
+  RAVEN_ID: process.env.RAVEN_ID,
   WHITELIST,
 };
 

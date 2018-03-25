@@ -16,9 +16,9 @@ import {
   COINBASE_PRIVATE_KEY
 } from '../utils/config'
 
-function ETHManager(provider = null, RPC_url = null) {
+function ETHManager(provider = null, rpcURL = null) {
   this.provider = provider;
-  this.web3 = new Web3(new Web3.providers.HttpProvider(RPC_url));
+  this.web3 = new Web3(new Web3.providers.HttpProvider(rpcURL));
 }
 
 ETHManager.prototype.createAccount = function (password, cb) {
@@ -38,57 +38,57 @@ ETHManager.prototype.createAccount = function (password, cb) {
   }
 }
 
-ETHManager.prototype.getprivatekey = function (keystore_data, password, cb) {
-  let key_store = JSON.parse(keystore_data);
-  keythereum.recover(password, key_store, (err, private_key) => {
+ETHManager.prototype.getprivatekey = function (keystoreData, password, cb) {
+  let keyStore = JSON.parse(keystoreData);
+  keythereum.recover(password, keyStore, (err, privateKey) => {
     if (err) cb(err, null)
-    else cb(null, private_key)
+    else cb(null, privateKey)
   })
 }
 
-ETHManager.prototype.getaddress = function (private_key, cb) {
+ETHManager.prototype.getAddress = function (privateKey, cb) {
   try {
-    const wallet = Wallet.fromPrivateKey(private_key);
+    const wallet = Wallet.fromPrivateKey(privateKey);
     const address = wallet.getAddressString();
+
     cb(null, address);
   } catch (error) {
     cb(error, null);
   }
 }
 
-ETHManager.prototype.getBalance = function (account_addr, cb) {
-  this.web3.eth.getBalance(account_addr, (err, balance) => {
+ETHManager.prototype.getBalance = function (accountAddr, cb) {
+  this.web3.eth.getBalance(accountAddr, (err, balance) => {
     cb(err, balance);
   })
 }
 
-ETHManager.prototype.sendRawTransaction = function (tx_data, cb) {
-  this.web3.eth.sendRawTransaction(tx_data, (err, tx_hash) => {
-    console.log('err', err, tx_hash, this.web3.currentProvider)
+ETHManager.prototype.sendRawTransaction = function (txData, cb) {
+  this.web3.eth.sendRawTransaction(txData, (err, txHash) => {
     if (err) cb(err, null);
-    else cb(null, tx_hash);
+    else cb(null, txHash);
   })
 }
 
-ETHManager.prototype.transferamount = function (from_addr, to_addr, amount, private_key, cb) {
+ETHManager.prototype.transferAmount = function (fromAddr, toAddr, amount, privateKey, cb) {
   let rawTx = {
     nonce: this.web3.toHex(500000),
     gasPrice: this.web3.toHex(5000000000),
     gasLimit: this.web3.toHex(500000),
-    to: to_addr,
+    to: toAddr,
     value: amount,
     data: ''
   }
   let tx = new Tx(rawTx);
-  tx.sign(new Buffer(private_key));
+  tx.sign(new Buffer(privateKey));
   let serializedTx = tx.serialize();
-  this.web3.eth.sendRawTransaction('0x' + serializedTx.toString('hex'), (err, tx_hash) => {
-    cb(err, tx_hash)
+  this.web3.eth.sendRawTransaction('0x' + serializedTx.toString('hex'), (err, txDash) => {
+    cb(err, txDash)
   })
 }
 
-ETHManager.prototype.gettransactionreceipt = function (tx_hash, cb) {
-  this.web3.eth.getTransactionReceipt(tx_hash, (err, receipt) => {
+ETHManager.prototype.gettransactionreceipt = function (txHash, cb) {
+  this.web3.eth.getTransactionReceipt(txHash, (err, receipt) => {
     if (err) cb(err, null);
     else cb(null, receipt);
   })
