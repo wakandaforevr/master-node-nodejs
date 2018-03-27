@@ -12,7 +12,7 @@ routes.post('/account', AccountValidations.validateCreateAccount, AccountControl
 routes.post('/account/balance', AccountValidations.getBalance, AccountController.getBalance);
 routes.post('/raw-transaction', AccountValidations.rawTransaction, TransactionController.rawTransaction); 
 routes.post('/vpn', VpnValidations.getVpnCredentials, VpnController.getVpnCredentials);
-routes.post('/vpn/current', VpnController.getCurrentVpnUsage)
+routes.post('/vpn/current', VpnController.getCurrentVpnUsage);
 routes.get('/vpn/list', VpnController.getVpnsList);
 routes.post('/vpn/usage', VpnController.getVpnUsage);
 routes.post('/vpn/pay', VpnValidations.payVpnUsage, VpnController.payVpnUsage);

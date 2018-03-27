@@ -15,7 +15,7 @@ export const validateCreateAccount = (req, res, next) => {
 
 export const getBalance = (req, res, next) => {
   let getBalanceSchema = joi.object().keys({
-    account_addr: joi.string().regex(/^0x[a-zA-Z0-9]{40}$/).required()
+    accountAddr: joi.string().regex(/^0x[a-zA-Z0-9]{40}$/).required()
   })
   let validation = utils.validate(req.body, getBalanceSchema);
   if (validation.isValid) {

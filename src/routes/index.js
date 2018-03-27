@@ -5,10 +5,7 @@
 import { Router } from 'express';
 import HTTPStatus from 'http-status';
 
-import AccountRoutes from './account.routes';
-import VpnRoutes from './vpn.routes'
 import NodeRoutes from './node.routes';
-import TransactionRoutes from './transaction.routes';
 import ClientRoutes from './client.routes';
 import * as DevController from '../dev/free'
 
