@@ -368,7 +368,7 @@ export const getDailySessionCount = (req, res) => {
     "$project": {
       "total": {
         "$add": [
-          dateTime(1970, 0, 1), {
+          new Date(1970 - 1 - 1), {
             "$multiply": ["$start_time", 1000]
           }
         ]
@@ -379,7 +379,7 @@ export const getDailySessionCount = (req, res) => {
       "_id": {
         "$dateToString": {
           "format": "%d/%m/%Y",
-          "date": '$total'
+          "date": "$total"
         }
       },
       "sessionsCount": {
@@ -390,8 +390,8 @@ export const getDailySessionCount = (req, res) => {
     "$sort": {
       "_id": 1
     }
-  }], (err, result) => {
-    result.map((doc) => {
+  }]).toArray((err, result) => {
+    result.forEach((doc) => {
       dailyCount.push(doc)
     })
     res.send({
@@ -419,7 +419,7 @@ export const getDailyNodeCount = (req, res) => {
     "$project": {
       "total": {
         "$add": [
-          dateTime(1970, 0, 1), {
+          new Date(1970 - 1 - 1), {
             "$multiply": ["$created_at", 1000]
           }
         ]
@@ -441,7 +441,7 @@ export const getDailyNodeCount = (req, res) => {
     "$sort": {
       "_id": 1
     }
-  }], (err, result) => {
+  }]).toArray((err, result) => {
     result.map((doc) => {
       dailyCount.push(doc)
     })
@@ -485,7 +485,7 @@ export const getDailyDataCount = (req, res) => {
         "$project": {
           "total": {
             "$add": [
-              dateTime(1970, 0, 1), {
+              new Date(1970 - 1 - 1), {
                 "$multiply": ["$start_time", 1000]
               }
             ]
@@ -508,7 +508,7 @@ export const getDailyDataCount = (req, res) => {
         "$sort": {
           "_id": 1
         }
-      }], (err, result) => {
+      }]).toArray((err, result) => {
         result.map((doc) => {
           dailyCount.push(doc)
         })
@@ -532,7 +532,7 @@ export const getTotalDataCount = (req, res) => {
       "_id": null,
       "Total": { "$sum": "$usage.down" }
     }
-  }], (err, result) => {
+  }]).toArray((err, result) => {
     if (err) res.send(err)
     result.map((doc) => {
       totalCount.push(doc)
@@ -550,7 +550,7 @@ export const getDailyDurationCount = (req, res) => {
     "$project": {
       "total": {
         "$add": [
-          dateTime(1970, 1, 1), {
+          new Date(1970 - 1 - 1), {
             "$multiply": ["$start_time", 1000]
           }
         ]
@@ -560,7 +560,7 @@ export const getDailyDurationCount = (req, res) => {
         "$cond": [{
           "$eq": ["$end_time", null]
         },
-        parseInt(Date.now()), "$end_time"]
+        parseInt(Date.now() / 1000), "$end_time"]
       }
     }
   }, {
@@ -581,7 +581,7 @@ export const getDailyDurationCount = (req, res) => {
     "$sort": {
       "_id": 1
     }
-  }], (err, result) => {
+  }]).toArray((err, result) => {
     result.map((doc) => {
       dailyCount.push(doc)
     })
@@ -602,7 +602,7 @@ export const getAverageDuration = (req, res) => {
             "$cond": [{
               "$eq": ["$end_time", null]
             },
-            parseInt(Date.now()), "$end_time"]
+            parseInt(Date.now() / 1000), "$end_time"]
           }, "$start_time"]
         }
       }
@@ -614,7 +614,7 @@ export const getAverageDuration = (req, res) => {
         "$avg": "$Sum"
       }
     }
-  }], (err, result) => {
+  }]).toArray((err, result) => {
     if (err) res.send(err);
     result.map((doc) => {
       avgCount.push(doc)
