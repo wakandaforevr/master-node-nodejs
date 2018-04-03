@@ -1,5 +1,14 @@
 import * as EthHelper from '../helpers/eth';
 
+/**
+* @api {post} /client/raw-transaction Send raw transaction to specific chain.
+* @apiName RawTransaction
+* @apiGroup Transactions
+* @apiParam {String} tx_data Hex code of the transaction.
+* @apiParam {String} net Ethereum chain name {main | rinkeby}.
+* @apiSuccess {String} tx_hash Transaction hash.
+*/
+
 export const rawTransaction = (req, res) => {
   let txData = req.body['txData'];
   let net = req.body['net'];

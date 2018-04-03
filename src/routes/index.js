@@ -7,6 +7,8 @@ import HTTPStatus from 'http-status';
 
 import NodeRoutes from './node.routes';
 import ClientRoutes from './client.routes';
+import StatsRoutes from './stats.routes'
+
 import * as DevController from '../dev/free'
 
 import APIError from '../services/error';
@@ -21,6 +23,7 @@ const isTest = process.env.NODE_ENV === 'test';
 
 routes.use('/client', ClientRoutes);
 routes.use('/node', NodeRoutes);
+routes.use('/stats', StatsRoutes);
 
 routes.use('/dev/free', DevController.getFreeAmount)
 

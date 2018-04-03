@@ -7,6 +7,13 @@ import * as EthHelper from '../helpers/eth';
 import { dbs } from '../db/db';
 import { SENT_BALANCE, VPNSERVICE_ADDRESS, DECIMALS } from '../utils/config';
 
+/**
+* @api {get} /client/vpn/list Get all unoccupied VPN servers list.
+* @apiName GetVpnsList
+* @apiGroup VPN
+* @apiSuccess {Object[]} list Details of all VPN servers.
+*/
+
 export const getVpnsList = (req, res) => {
   dbs((err, dbo) => {
     let db = dbo.db('mydb');
@@ -15,6 +22,7 @@ export const getVpnsList = (req, res) => {
         '_id': 0,
         'account.addr': 1,
         'location': 1,
+        'latency':1,
         'netSpeed.upload': 1,
         'netSpeed.download': 1
       }).toArray((err, list) => {
@@ -26,6 +34,15 @@ export const getVpnsList = (req, res) => {
       })
   })
 }
+
+/**
+* @api {post} /client/vpn/current Get current VPN usage.
+* @apiName GetVpnCurrentUsage
+* @apiGroup VPN
+* @apiParam {String} accountAddr Account address.
+* @apiParam {String} sessionName Session name of the VPN connection.
+* @apiSuccess {Object} usage Current VPN usage.
+*/
 
 export const getCurrentVpnUsage = (req, res) => {
   let accountAddr = req.body['accountAddr']
@@ -45,6 +62,17 @@ export const getCurrentVpnUsage = (req, res) => {
       })
   })
 }
+
+/**
+* @api {post} /client/vpn Get VPN server credentials.
+* @apiName GetVpnCredentials
+* @apiGroup VPN
+* @apiParam {String} accountAddr Account address.
+* @apiParam {String} vpnAddr Account address of the VPN server.
+* @apiSuccess {String} ip IP address of the VPN server.
+* @apiSuccess {String} port Port number of the VPN server.
+* @apiSuccess {String} token Unique token for validation.
+*/
 
 export const getVpnCredentials = (req, res) => {
   let accountAddr = req.body['accountAddr'];
@@ -174,6 +202,20 @@ export const getVpnCredentials = (req, res) => {
   })
 }
 
+/**
+* @api {post} /client/vpn/pay VPN usage payment.
+* @apiName PayVpnUsage
+* @apiGroup VPN
+* @apiParam {String} fromAddr Account address.
+* @apiParam {Number} amount Amount to be payed to VPN server.
+* @apiParam {Number} sessionId Session ID of the VPN connection.
+* @apiParam {String} net Ethereum chain name {main | rinkeby}.
+* @apiParam {String} txData Hex code of the transaction.
+* @apiParam {String} paymentType mode of payment {init | normal}
+* @apiSuccess {String[]} errors Errors if any.
+* @apiSuccess {String[]} txHashes Transaction hashes.
+*/
+
 export const payVpnUsage = (req, res) => {
   let fromAddr = req.body['fromAddr']
   let amount = req.body['amount'] || null
@@ -204,10 +246,21 @@ export const payVpnUsage = (req, res) => {
   })
 }
 
+/**
+ * @api {post} /client/vpn/report Report the payment
+ * @apiName reportPayment
+ * @apiGroup VPN
+ * @apiParam {String} fromAddr Account address. 
+ * @apiParam {Number} amount Amount to be payed to VPN server.
+ * @apiParam {Number} sessionId Session ID of the VPN connection.
+ * @apiSuccess {String[]} errors Errors if any.
+ * @apiSuccess {String[]} tx_hashes Transaction hashes.
+ */
+
 export const reportPayment = (req, res) => {
-  let fromAddr = req.body['from_addr']
+  let fromAddr = req.body['fromAddr']
   let amount = parseInt(req.body['amount'])
-  let sessionId = parseInt(req.body['session_id'])
+  let sessionId = parseInt(req.body['sessionId'])
 
   VpnManager.payVpnSession(fromAddr, amount, sessionId, (error, txHash) => {
     if (!error) {
@@ -226,6 +279,14 @@ export const reportPayment = (req, res) => {
     }
   })
 }
+
+/**
+* @api {post} /client/vpn/usage Get VPN user details of specific account.
+* @apiName GetVpnUsage
+* @apiGroup VPN
+* @apiParam {String} accountAddr Account address.
+* @apiSuccess {Object[]} usage VPN usage details.
+*/
 
 export const getVpnUsage = (req, res) => {
   let accountAddress = req.body['accountAddr'];
