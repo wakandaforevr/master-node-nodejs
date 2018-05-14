@@ -10,7 +10,7 @@ import { DECIMALS } from '../utils/config'
 global.db = null;
 
 dbs((err, dbo) => {
-  global.db = dbo.db('mydb')
+  global.db = dbo.db('sentinel')
 })
 
 /**
@@ -391,6 +391,7 @@ export const getDailySessionCount = (req, res) => {
       "_id": 1
     }
   }]).toArray((err, result) => {
+    console.log('result', result)
     result.forEach((doc) => {
       dailyCount.push(doc)
     })
@@ -410,6 +411,176 @@ export const getActiveSessionCount = (req, res) => {
       'success': true,
       'count': count
     })
+  })
+}
+
+export const getAverageSessionsCount = (req, res) => {
+  global.db.collection('connections').aggregate([{
+    '$group': {
+      '_id': null,
+      'olddate': {
+        '$min': "$start_time"
+      },
+      'newdate': {
+        '$max': "$start_time"
+      },
+      "SUM": {
+        '$sum': 1
+      }
+    }
+  }, {
+    '$project': {
+      '_id': 0,
+      'Average Sessions': {
+        '$divide': [
+          "$SUM", {
+            '$divide': [{
+              "$subtract": ["$newdate", "$olddate"]
+            }, 24 * 60 * 60]
+          }
+        ]
+      }
+    }
+  }]).toArray((err, resp) => {
+    if (err) {
+      res.send({
+        'success': false,
+        'err': err
+      })
+    } else {
+      res.send({
+        'success': true,
+        'average': resp
+      })
+    }
+  })
+}
+
+export const getTotalNodeCount = (req, res) => {
+  global.db.collection('statistics').aggregate([{
+    '$project': {
+      'total': {
+        '$add': [
+          new Date(1970 - 1 - 1), {
+            '$multiply': ['$timestamp', 1000]
+          }
+        ]
+      },
+      'nodes': '$nodes.total'
+    }
+  }, {
+    '$group': {
+      '_id': {
+        '$dateToString': {
+          'format': '%d/%m/%Y',
+          'date': '$total'
+        }
+      },
+      'nodesCount': {
+        '$sum': '$nodes'
+      }
+    }
+  }, {
+    '$sort': {
+      '_id': 1
+    }
+  }]).toArray((err, resp) => {
+    if (err) {
+      res.send({
+        'success': false,
+        'err': err
+      })
+    } else {
+      res.send({
+        'success': true,
+        'average': resp
+      })
+    }
+  })
+}
+
+export const getDailyActiveNodeCount = (req, res) => {
+  global.db.collection('statistics').aggregate([{
+    '$project': {
+      'total': {
+        '$add': [
+          new Date(1970 - 1 - 1), {
+            '$multiply': ['$timestamp', 1000]
+          }
+        ]
+      },
+      'nodes': '$nodes.up'
+    }
+  }, {
+    '$group': {
+      '_id': {
+        '$dateToString': {
+          'format': '%d/%m/%Y',
+          'date': '$total'
+        }
+      },
+      'nodesCount': {
+        '$sum': '$nodes'
+      }
+    }
+  }, {
+    '$sort': {
+      '_id': 1
+    }
+  }]).toArray((err, resp) => {
+    if (err) {
+      res.send({
+        'success': false,
+        'err': err
+      })
+    } else {
+      res.send({
+        'success': true,
+        'average': resp
+      })
+    }
+  })
+}
+
+export const getAverageNodesCount = (req, res) => {
+  global.db.collection('nodes').aggregate([{
+    '$group': {
+      '_id': null,
+      'olddate': {
+        '$min': "$joined_on"
+      },
+      'newdate': {
+        '$max': "$joined_on"
+      },
+      "SUM": {
+        '$sum': 1
+      }
+    }
+  }, {
+    '$project': {
+      '_id': 0,
+      'Average': {
+        '$divide': [
+          "$SUM", {
+            '$divide': [{
+              "$subtract": ["$newdate", "$olddate"]
+            }, 24 * 60 * 60]
+          }
+        ]
+      }
+    }
+  }]).toArray((req, res) => {
+    if (err) {
+      res.send({
+        'success': false,
+        'err': err
+      })
+    } else {
+      res.send({
+        'success': true,
+        'average': resp
+      })
+    }
   })
 }
 
@@ -530,7 +701,7 @@ export const getTotalDataCount = (req, res) => {
   global.db.collection('connections').aggregate([{
     "$group": {
       "_id": null,
-      "Total": { "$sum": "$usage.down" }
+      "Total": { "$sum": "$server_usage.down" }
     }
   }]).toArray((err, result) => {
     if (err) res.send(err)
@@ -542,6 +713,31 @@ export const getTotalDataCount = (req, res) => {
       'stats': totalCount
     })
   })
+}
+
+export const getLastDataCount = (req, res) => {
+  global.db.collection('connections').aggregate([
+    { '$match': { 'start_time': { '$gte': (Date.now() / 1000) - (24 * 60 * 60) } } },
+    {
+      '$group': {
+        '_id': null,
+        'Total': {
+          '$sum': '$server_usage.down'
+        }
+      }
+    }]).toArray((err, resp) => {
+      if (err) {
+        res.send({
+          'success': false,
+          'err': err
+        })
+      } else {
+        res.send({
+          'success': true,
+          'average': resp
+        })
+      }
+    })
 }
 
 export const getDailyDurationCount = (req, res) => {
@@ -623,5 +819,133 @@ export const getAverageDuration = (req, res) => {
       'success': true,
       'stats': avgCount
     })
+  })
+}
+
+export const getDailyAverageDuration = (req, res) => {
+  global.db.collection('connections').aggregate([{
+    '$project': {
+      'total': {
+        '$add': [new Date(1970 - 1 - 1), {
+          '$multiply': ['$start_time', 1000]
+        }]
+      }, 'Sum': {
+        '$sum': {
+          '$subtract': [
+            {
+              '$cond': [
+                { '$eq': ['$end_time', null] },
+                Date.now() / 1000,
+                '$end_time']
+            },
+            '$start_time'
+          ]
+        }
+      }
+    }
+  }, {
+    '$group': {
+      '_id': { '$dateToString': { 'format': '%d/%m/%Y', 'date': '$total' } },
+      'Average': { '$avg': '$Sum' }
+    }
+  }, {
+    '$sort': { '_id': 1 }
+  }]).toArray((err, resp) => {
+    if (err) {
+      res.send({
+        'success': false,
+        'err': err
+      })
+    } else {
+      res.send({
+        'success': true,
+        'average': resp
+      })
+    }
+  })
+}
+
+export const getLastAverageDuration = (req, res) => {
+  global.db.collection('connections').aggregate([
+    { '$match': { 'start_time': { '$gte': Date.now() / 1000 - (24 * 60 * 60) } } },
+    {
+      '$project': {
+        'Sum': {
+          '$sum': {
+            '$subtract': [{
+              '$cond': [{
+                '$eq': ['$end_time', null]
+              },
+              Date.now() / 1000, '$end_time']
+            }, '$start_time']
+          }
+        }
+      }
+    }, {
+      '$group': {
+        '_id': null,
+        'Average': {
+          '$avg': '$Sum'
+        }
+      }
+    }]).toArray((err, resp) => {
+      if (err) {
+        res.send({
+          'success': false,
+          'err': err
+        })
+      } else {
+        res.send({
+          'success': true,
+          'average': resp
+        })
+      }
+    })
+}
+
+export const getNodeStatistics = (req, res) => {
+  console.log('req.params', req.params)
+  let account_addr = req.params.addr;
+
+  global.db.collection('connections').aggregate([{
+    '$match': {
+      'vpn_addr': account_addr
+    }
+  }, {
+    '$group': {
+      '_id': '$vpn_addr',
+      'sessions_count': {
+        '$sum': 1
+      },
+      'active_sessions': {
+        '$sum': {
+          '$cond': [{
+            '$or': [{
+              '$eq': ['$end_time', null]
+            }, {
+              '$eq': ['$end_time', null]
+            }]
+          }, 1, 0]
+        }
+      },
+      'download': {
+        '$sum': '$server_usage.down'
+      },
+      'upload': {
+        '$sum': '$server_usage.up'
+      }
+    }
+  }]).toArray((err, resp) => {
+    if (err) {
+      res.send({
+        'success': false,
+        'err': err
+      })
+    } else {
+      res.send({
+        'success': true,
+        'average': resp
+      })
+    }
   })
 }
