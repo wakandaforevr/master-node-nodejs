@@ -7,11 +7,12 @@ const routes = new Router();
 routes.post('/', (req, res) => {
   res.status = 200;
   res.send({
-    'status':'UP'
+    'status': 'UP'
   })
 });
 
 routes.get('/available', TokenController.getAvailableTokens);
 routes.get('/sents', TokenController.getSents);
+routes.post('/swaps/raw-transaction', TokenController.tokenSwapRawTransaction);
 
 export default routes;

@@ -7,7 +7,7 @@ function Tokens() {
   this.prices = {}
 }
 
-Tokens.prototype.getToken = function (address = null, name = null, cb) {
+Tokens.prototype.getToken = function (address = null, name = null) {
   let Token = null;
 
   if (address) {
@@ -53,7 +53,7 @@ Tokens.prototype.getUsdPrice = function (token, cb) {
   }
 }
 
-Tokens.prototype.calculateSents = function (token, value) {
+Tokens.prototype.calculateSents = function (token, value, cb) {
   let sentUsd = null;
   let tokenUsd = null;
   let that = this;
