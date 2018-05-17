@@ -1,3 +1,5 @@
+import utf8 from 'utf8'
+
 module.exports.SENTINEL_ABI = [
   {
     "constant": true, "inputs": [], "name": "name", "outputs": [{ "name": "", "type": "string" }], "payable": false,
@@ -268,11 +270,18 @@ module.exports.VPNSERVICE_ABI = [
     "outputs": [{ "name": "", "type": "bool" }], "payable": false, "stateMutability": "view", "type": "function"
   }]
 
-module.exports.VPNSERVICE_ADDRESS = '0x9768df18073d2Ab666cF98F953299342259EcBAa'
+module.exports.VPNSERVICE_ADDRESS = '0x9768df18073d2Ab666cF98F953299342259EcBAa'.toLowerCase()
 module.exports.VPNSERVICE_NAME = 'Vpn_service'
-module.exports.COINBASE_ADDRESS = '0xA3F1592D8a09a91a7238f608620fFDe7C4B26029'
+module.exports.COINBASE_ADDRESS = '0xA3F1592D8a09a91a7238f608620fFDe7C4B26029'.toLowerCase()
 module.exports.COINBASE_PRIVATE_KEY = '81c81be18ae01e88358a48f7a5c661d567d59588490cd7cd39a89f25e37ceccb'
 module.exports.DECIMALS = Math.pow(10, 8)
+module.exports.CENTRAL_WALLET = ''.toString()
+module.exports.CENTRAL_WALLET_PRIVATE_KEY = ''
+module.exports.MAX_TX_TRY = 60
+module.exports.LIMIT_10MB = 10 * 1024 * 1024
+module.exports.LIMIT_100MB = 100 * 1024 * 1024
+module.exports.SESSIONS_SALT = utf8.encode('')
+
 
 
 

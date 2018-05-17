@@ -14,6 +14,7 @@ routes.post('/raw-transaction', AccountValidations.rawTransaction, TransactionCo
 routes.post('/vpn', VpnValidations.getVpnCredentials, VpnController.getVpnCredentials);
 routes.post('/vpn/current', VpnController.getCurrentVpnUsage);
 routes.get('/vpn/list', VpnController.getVpnsList);
+routes.get('/vpn/socks-list', VpnController.getSocksList);
 routes.post('/vpn/usage', VpnController.getVpnUsage);
 routes.post('/vpn/pay', VpnValidations.payVpnUsage, VpnController.payVpnUsage);
 routes.post('/vpn/report', VpnController.reportPayment);

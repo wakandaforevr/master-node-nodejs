@@ -122,6 +122,7 @@
     "joi": "^13.0.1",
     "jsonwebtoken": "^8.0.0",
     "keythereum": "^1.0.2",
+    "lodash": "^4.17.10",
     "method-override": "^2.3.8",
     "mongodb": "^3.0.3",
     "mongoose": "^5.0.0",
@@ -136,6 +137,7 @@
     "request": "^2.83.0",
     "request-ip": "^2.0.2",
     "slug": "^0.9.1",
+    "utf8": "^3.0.0",
     "uuid": "^3.2.1",
     "web3": "git+https://github.com/ethereum/web3.js.git",
     "winston": "^2.3.1"

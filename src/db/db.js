@@ -7,3 +7,9 @@ export const dbs = (cb) => {
     cb(null, dbo);
   });
 }
+
+global.db = null;
+
+dbs((err, dbo) => {
+  global.db = dbo.db('sentinel')
+})

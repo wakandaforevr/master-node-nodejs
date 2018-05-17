@@ -7,12 +7,6 @@ import * as EthHelper from '../helpers/eth'
 
 import { DECIMALS } from '../utils/config'
 
-global.db = null;
-
-dbs((err, dbo) => {
-  global.db = dbo.db('sentinel')
-})
-
 /**
 * @api {post} /node/register VPN registration.
 * @apiName RegisterNode
@@ -36,22 +30,16 @@ export const registerNode = (req, res) => {
   let db = null
 
   async.waterfall([
-    (next) => {
-      dbs((err, dbo) => {
-        if (err) next(err, null)
-        db = dbo.db('mydb');
-        next();
-      })
-    }, (next => {
-      db.collection('nodes').findOne({ accountAddr: accountAddr }, (err, node) => {
+     (next) => {
+      global.db.collection('nodes').findOne({ accountAddr: accountAddr }, (err, node) => {
         if (!node) next()
         else next({
-          'success': false,
+          'succes': false,
           'message': 'Error occurred while registering the node.'
         }, null)
       })
-    }), (next) => {
-      db.collection('nodes').insertOne({
+    }, (next) => {
+      global.db.collection('nodes').insertOne({
         'accountAddr': accountAddr,
         'token': token,
         'location': location,
@@ -60,7 +48,7 @@ export const registerNode = (req, res) => {
       }, (err, resp) => {
         if (err) {
           next({
-            'success': false,
+            'success1': false,
             'message': 'Error occurred while registering the node.'
           }, null)
         }
@@ -96,17 +84,11 @@ export const updateNodeInfo = (req, res) => {
   let info = req.body['info'];
 
   async.waterfall([
-    (next) => {
-      dbs((err, dbo) => {
-        if (err) next(err, null)
-        let db = dbo.db('mydb');
-        next(null, db)
-      })
-    }, (db, next) => {
+   (next) => {
       if (info['type'] == 'location') {
         let location = info['location'];
 
-        db.collection('nodes').findOneAndUpdate(
+        global.db.collection('nodes').findOneAndUpdate(
           { 'accountAddr': accountAddr, 'token': token },
           { '$set': { 'location': location } },
           (err, node) => {
@@ -116,7 +98,7 @@ export const updateNodeInfo = (req, res) => {
       } else if (info['type'] == 'netSpeed') {
         let netSpeed = info['netSpeed'];
 
-        db.collection('nodes').findOneAndUpdate(
+        global.db.collection('nodes').findOneAndUpdate(
           { 'accountAddr': accountAddr, 'token': token },
           { '$set': { 'netSpeed': netSpeed } },
           (err, node) => {
@@ -126,7 +108,7 @@ export const updateNodeInfo = (req, res) => {
       } else if (info['type'] == 'vpn') {
         let initTime = parseInt(Date.now() / 1000)
 
-        db.collection('nodes').findOneAndUpdate(
+        global.db.collection('nodes').findOneAndUpdate(
           { 'accountAddr': accountAddr, 'token': token },
           {
             '$set': {
@@ -142,7 +124,7 @@ export const updateNodeInfo = (req, res) => {
       } else if (info['type'] == 'alive') {
         let lastPing = parseInt(Date.now() / 1000)
 
-        db.collection('nodes').findOneAndUpdate(
+        global.db.collection('nodes').findOneAndUpdate(
           { 'accountAddr': accountAddr, 'token': token },
           {
             '$set': {
@@ -190,17 +172,10 @@ export const updateConnections = (req, res) => {
   let token = req.body['token']
   let accountAddr = req.body['accountAddr']
   let connections = req.body['connections']
-  let db = null
 
   async.waterfall([
     (next) => {
-      dbs((err, dbo) => {
-        if (err) next(err, null)
-        db = dbo.db('mydb')
-        next()
-      })
-    }, (next) => {
-      db.collection('nodes').findOne({
+      global.db.collection('nodes').findOne({
         accountAddr: accountAddr,
         token: token
       }, (err, node) => {
@@ -214,14 +189,14 @@ export const updateConnections = (req, res) => {
         async.eachSeries(connections, (info, iterate) => {
           setTimeout(() => {
             info['accountAddr'] = accountAddr
-            db.collection('connections').findOne({
+            global.db.collection('connections').findOne({
               'accountAddr': accountAddr,
               'sessionName': info['sessionName']
             }, (err, connection) => {
               if (!connection) {
-                db.collection('connections').insertOne(info)
+                global.db.collection('connections').insertOne(info)
               } else {
-                db.collection('connections').findOneAndUpdate({
+                global.db.collection('connections').findOneAndUpdate({
                   'accountAddr': accountAddr,
                   'sessionName': info['sessionName']
                 }, {
@@ -285,13 +260,7 @@ export const deRegisterNode = (req, res) => {
 
   async.waterfall([
     (next) => {
-      dbs((err, dbo) => {
-        if (err) next(err, null)
-        let db = dbo.db('mydb');
-        next(null, db);
-      })
-    }, (db, next) => {
-      db.collection('nodes').findOneAndDelete(
+      global.db.collection('nodes').findOneAndDelete(
         { 'accountAddr': accountAddr, 'token': token },
         (err, node) => {
           if (!node.value) {
@@ -586,6 +555,7 @@ export const getAverageNodesCount = (req, res) => {
 
 export const getDailyNodeCount = (req, res) => {
   let dailyCount = []
+
   global.db.collection('nodes').aggregate([{
     "$project": {
       "total": {
@@ -904,8 +874,7 @@ export const getLastAverageDuration = (req, res) => {
 }
 
 export const getNodeStatistics = (req, res) => {
-  console.log('req.params', req.params)
-  let account_addr = req.params.addr;
+  let account_addr = req.query.addr;
 
   global.db.collection('connections').aggregate([{
     '$match': {

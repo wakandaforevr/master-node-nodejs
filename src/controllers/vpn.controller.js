@@ -14,24 +14,64 @@ import { SENT_BALANCE, VPNSERVICE_ADDRESS, DECIMALS } from '../utils/config';
 * @apiSuccess {Object[]} list Details of all VPN servers.
 */
 
+const getNodeList = (vpnType, cb) => {
+  global.db.collection('nodes').find({
+    'vpn.status': 'up',
+    'vpn_type': vpnType
+  }).project({
+    '_id': 0,
+    'account_addr': 1,
+    'ip': 1,
+    'price_per_gb': 1,
+    'location': 1,
+    'netSpeed.upload': 1,
+    'latency': 1,
+    'netSpeed.download': 1
+  }).toArray((err, list) => {
+    if (err) cb(err, null);
+    else cb(null, list);
+  })
+}
+
 export const getVpnsList = (req, res) => {
-  dbs((err, dbo) => {
-    let db = dbo.db('mydb');
-    db.collection('nodes').find(
-      { 'vpn.status': 'up' }).project({
-        '_id': 0,
-        'account.addr': 1,
-        'location': 1,
-        'latency':1,
-        'netSpeed.upload': 1,
-        'netSpeed.download': 1
-      }).toArray((err, list) => {
-        if (err) res.send(err);
-        else res.send({
-          'success': true,
-          'list': list
-        });
+  getNodeList('openvpn', (err, list) => {
+    if (err) {
+      res.send({
+        'success': false,
+        'error': err
       })
+    }
+
+    list.map((item) => {
+      item['price_per_GB'] = item['price_per_gb'];
+      delete item['price_per_gb'];
+    })
+    res.send({
+      'success': true,
+      'list': list
+    })
+
+  })
+}
+
+export const getSocksList = (req, res) => {
+  getNodeList('socks5', (err, list) => {
+    if (err) {
+      res.send({
+        'success': false,
+        'error': err
+      })
+    }
+
+    list.map((item) => {
+      item['price_per_GB'] = item['price_per_gb'];
+      delete item['price_per_gb'];
+    })
+    res.send({
+      'success': true,
+      'list': list
+    })
+
   })
 }
 
@@ -48,19 +88,17 @@ export const getCurrentVpnUsage = (req, res) => {
   let accountAddr = req.body['accountAddr']
   let sessionName = req.body['sessionName']
 
-  dbs((err, dbo) => {
-    let db = dbo.db('mydb')
-    db.collection('connections').findOne({
-      clientAddr: accountAddr,
-      sessionName: sessionName
-    }, {
-        _id: 0,
-        usage: 1
-      }, (err, result) => {
-        if (!result) res.send({})
-        else res.send(result.usage)
-      })
-  })
+  global.db.collection('connections').findOne({
+    clientAddr: accountAddr,
+    sessionName: sessionName
+  }, {
+      _id: 0,
+      usage: 1
+    }, (err, result) => {
+      if (!result) res.send({})
+      else res.send(result.usage)
+    })
+
 }
 
 /**
@@ -82,15 +120,6 @@ export const getVpnCredentials = (req, res) => {
 
   async.waterfall([
     (next) => {
-      dbs((err, dbo) => {
-        if (err) next({
-          message: 'database error',
-          err: err
-        }, null)
-        db = dbo.db('mydb');
-        next();
-      })
-    }, (next) => {
       EthHelper.getBalances(accountAddr,
         (err, balances) => {
           if (err) next(err, null);
@@ -107,7 +136,7 @@ export const getVpnCredentials = (req, res) => {
             }, null)
           } else if (dueAmount == 0) {
             if (vpnAddrLen > 0) {
-              db.collection('nodes').findOne(
+              global.db.collection('nodes').findOne(
                 { 'accountAddr': vpnAddr, 'vpn.status': 'up' },
                 { '_id': 0, 'token': 0 },
                 (err, node) => {
@@ -115,7 +144,7 @@ export const getVpnCredentials = (req, res) => {
                   else next(null, node);
                 })
             } else {
-              db.collection('nodes').findOne(
+              global.db.collection('nodes').findOne(
                 { 'vpn.status': 'up' },
                 { '_id': 0, 'token': 0 },
                 (err, node) => {
