@@ -10,8 +10,10 @@ import * as EthHelper from '../helpers/eth';
 */
 
 export const rawTransaction = (req, res) => {
-  let txData = req.body['txData'];
+  let txData = req.body['tx_data'];
   let net = req.body['net'];
+
+  console.log('tx_data', txData);
 
   EthHelper.rawTransaction(txData, net, (err, txHash) => {
     if (err) {

@@ -10,24 +10,23 @@ export const getAvailableTokens = (req, res) => {
   let token = [];
   token = Object.assign([], TOKENS)
 
-  token.map((item, index) => {
-    delete item.price_url;
-    token[index] = item;
-  })
-  res.status = 200;
-  res.send({
-    'success': true,
-    'tokens': token,
+  async.eachSeries(token, (item, next) => {
+    delete item.price_url
+    next()
+  }, () => {
+    res.status = 200;
+    res.send({
+      'success': true,
+      'tokens': token,
+    })
   })
 }
 
 export const getSents = (req, res) => {
-  console.log('query', req.query)
-  let toAddr = req.query['addr'];
+  let toAddr = req.query['to_addr'];
   toAddr = toAddr.toString();
   let value = req.query['value'];
   let token = tokens.getToken(toAddr);
-  console.log('token', token);
 
   if (token) {
     tokens.calculateSents(token, value, (sents) => {
@@ -60,7 +59,7 @@ export const tokenSwapRawTransaction = (req, res) => {
         next()
       })
     }, (next) => {
-      ETHHelper.getBalances(CENTRAL_WALLET, (err, availSents) => {
+      ETHHelper.getBalances('0xd16e64a4083bd4f973df66b75ab266987e509fe6'/* CENTRAL_WALLET */, (err, availSents) => {
         availableSents = availSents
         next()
       })

@@ -8,15 +8,15 @@ import * as VpnValidations from '../validations/vpn.validation';
 
 const routes = new Router();
 
-routes.post('/account', AccountValidations.validateCreateAccount, AccountController.createAccount);
-routes.post('/account/balance', AccountValidations.getBalance, AccountController.getBalance);
-routes.post('/raw-transaction', AccountValidations.rawTransaction, TransactionController.rawTransaction); 
-routes.post('/vpn', VpnValidations.getVpnCredentials, VpnController.getVpnCredentials);
+routes.post('/account', /* AccountValidations.validateCreateAccount */ AccountController.createAccount);
+routes.post('/account/balance', /* AccountValidations.getBalance */ AccountController.getBalance);
+routes.post('/raw-transaction', TransactionController.rawTransaction);
+routes.post('/vpn', VpnController.getVpnCredentials);
 routes.post('/vpn/current', VpnController.getCurrentVpnUsage);
 routes.get('/vpn/list', VpnController.getVpnsList);
 routes.get('/vpn/socks-list', VpnController.getSocksList);
 routes.post('/vpn/usage', VpnController.getVpnUsage);
-routes.post('/vpn/pay', VpnValidations.payVpnUsage, VpnController.payVpnUsage);
+routes.post('/vpn/pay', VpnController.payVpnUsage);
 routes.post('/vpn/report', VpnController.reportPayment);
 
 export default routes;

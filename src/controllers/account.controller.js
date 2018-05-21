@@ -51,7 +51,7 @@ export const createAccount = (req, res) => {
 */
 
 export const getBalance = (req, res) => {
-  let accountAddr = req.body['accountAddr'];
+  let accountAddr = req.body['account_addr'];
 
   EthHelper.getBalances(accountAddr, (err, balances) => {
     if (err) {

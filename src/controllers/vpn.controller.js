@@ -22,12 +22,13 @@ const getNodeList = (vpnType, cb) => {
     '_id': 0,
     'account_addr': 1,
     'ip': 1,
-    'price_per_gb': 1,
+    'price_per_GB': 1,
     'location': 1,
     'netSpeed.upload': 1,
     'latency': 1,
     'netSpeed.download': 1
   }).toArray((err, list) => {
+    console.log(err, list);
     if (err) cb(err, null);
     else cb(null, list);
   })
@@ -38,19 +39,21 @@ export const getVpnsList = (req, res) => {
     if (err) {
       res.send({
         'success': false,
+        'message': 'error in getting vpn node list',
         'error': err
       })
     }
 
-    list.map((item) => {
+    async.eachSeries(list, (item, iterate) => {
       item['price_per_GB'] = item['price_per_gb'];
       delete item['price_per_gb'];
+      iterate();
+    }, () => {
+      res.send({
+        'success': true,
+        'list': list
+      })
     })
-    res.send({
-      'success': true,
-      'list': list
-    })
-
   })
 }
 
@@ -63,15 +66,16 @@ export const getSocksList = (req, res) => {
       })
     }
 
-    list.map((item) => {
+    async.eachSeries(list, (item, iterate) => {
       item['price_per_GB'] = item['price_per_gb'];
       delete item['price_per_gb'];
+      iterate();
+    }, () => {
+      res.send({
+        'success': true,
+        'list': list
+      })
     })
-    res.send({
-      'success': true,
-      'list': list
-    })
-
   })
 }
 
@@ -86,6 +90,7 @@ export const getSocksList = (req, res) => {
 
 export const getCurrentVpnUsage = (req, res) => {
   let accountAddr = req.body['accountAddr']
+  accountAddr = accountAddr.toLowerCase
   let sessionName = req.body['sessionName']
 
   global.db.collection('connections').findOne({
@@ -93,10 +98,10 @@ export const getCurrentVpnUsage = (req, res) => {
     sessionName: sessionName
   }, {
       _id: 0,
-      usage: 1
+      server_usage: 1
     }, (err, result) => {
       if (!result) res.send({})
-      else res.send(result.usage)
+      else res.send(result.server_usage)
     })
 
 }
@@ -113,10 +118,9 @@ export const getCurrentVpnUsage = (req, res) => {
 */
 
 export const getVpnCredentials = (req, res) => {
-  let accountAddr = req.body['accountAddr'];
-  let vpnAddr = req.body['vpnAddr'];
+  let accountAddr = req.body['account_addr'];
+  let vpnAddr = req.body['vpn_addr'];
   let vpnAddrLen = vpnAddr.length;
-  let db = null;
 
   async.waterfall([
     (next) => {
@@ -137,7 +141,7 @@ export const getVpnCredentials = (req, res) => {
           } else if (dueAmount == 0) {
             if (vpnAddrLen > 0) {
               global.db.collection('nodes').findOne(
-                { 'accountAddr': vpnAddr, 'vpn.status': 'up' },
+                { 'account_addr': vpnAddr, 'vpn.status': 'up' },
                 { '_id': 0, 'token': 0 },
                 (err, node) => {
                   if (err) next(err, null);
@@ -168,28 +172,22 @@ export const getVpnCredentials = (req, res) => {
       }
     }, (node, next) => {
       if (!node) {
-        if (vpnAddrLen) {
-          next({
-            'success': false,
-            'message': 'VPN server is already occupied. Please try after sometime.'
-          }, null)
-        } else {
-          next({
-            'success': false,
-            'message': 'All VPN servers are occupied. Please try after sometime.'
-          }, null)
-        }
+        next({
+          'success': false,
+          'message': 'Currently VPN server is not available. Please try after sometime.'
+        }, null)
       } else {
         next(null, node);
       }
     }, (node, next) => {
       EthHelper.getInitialPayment(accountAddr, (err, isPayed) => {
+        console.log('ispayed', isPayed)
         if (err) {
           next({
             'success': false,
             'message': 'Error occurred while cheking initial payment status.'
           }, null)
-        } else if (isPayed) {
+        } else if (true) {
           try {
             let token = uuid.v4();
             let ip = node.ip;
@@ -198,13 +196,15 @@ export const getVpnCredentials = (req, res) => {
               accountAddr: accountAddr,
               token: token
             };
-            let url = 'http://' + ip + ':' + port + '/master/sendToken';
+            let url = 'http://' + ip + ':' + port + '/token';
             request.post({ url: url, body: JSON.stringify(body) }, (err, r, resp) => {
               next(null, {
                 'success': true,
                 'ip': ip,
                 'port': port,
-                'token': token
+                'token': token,
+                'vpn_addr': vpnAddr,
+                'message': 'Started VPN session.'
               });
             })
           } catch (error) {
@@ -246,15 +246,15 @@ export const getVpnCredentials = (req, res) => {
 */
 
 export const payVpnUsage = (req, res) => {
-  let fromAddr = req.body['fromAddr']
-  let amount = req.body['amount'] || null
-  let sessionId = req.body['sessionId'] || null
+  let paymentType = req.body['payment_type']
+  let txData = req.body['tx_data']
   let net = req.body['net']
-  let txData = req.body['txData']
-  let paymentType = req.body['paymentType']
+  let fromAddr = req.body['from_addr']
+  let amount = req.body['amount'].toString() || null
+  let sessionId = req.body['session_id'].toString() || null
 
-  sessionId = parseInt(sessionId)
-  amount = parseInt(amount * (DECIMALS * 1.0))
+  if (sessionId)
+    sessionId = sessionId.toString();
 
   EthHelper.payVpnSession(fromAddr, amount, sessionId, net, txData, paymentType, (errors, txHashes) => {
     if (errors.length > 0) {
@@ -287,11 +287,11 @@ export const payVpnUsage = (req, res) => {
  */
 
 export const reportPayment = (req, res) => {
-  let fromAddr = req.body['fromAddr']
+  let fromAddr = req.body['from_addr']
   let amount = parseInt(req.body['amount'])
-  let sessionId = parseInt(req.body['sessionId'])
+  let sessionId = parseInt(req.body['session_id'])
 
-  VpnManager.payVpnSession(fromAddr, amount, sessionId, (error, txHash) => {
+  VpnManager.payVpnSession(fromAddr, amount, sessionId, '', (error, txHash) => {
     if (!error) {
       res.status(200).send({
         'success': true,
@@ -318,7 +318,8 @@ export const reportPayment = (req, res) => {
 */
 
 export const getVpnUsage = (req, res) => {
-  let accountAddress = req.body['accountAddr'];
+  let accountAddress = req.body['account_addr'];
+  accountAddress = accountAddress.toLowerCase();
 
   EthHelper.getVpnUsage(accountAddress, (err, usage) => {
     if (!err) {

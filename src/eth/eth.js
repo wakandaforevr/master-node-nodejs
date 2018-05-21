@@ -34,14 +34,14 @@ ETHManager.prototype.createAccount = function (password, cb) {
     }
     cb(null, accountDetails)
   } catch (error) {
-    cb(error, null);
+    cb({ 'code': 101, 'error': error }, null);
   }
 }
 
-ETHManager.prototype.getprivatekey = function (keystoreData, password, cb) {
+ETHManager.prototype.getPrivateKey = function (keystoreData, password, cb) {
   let keyStore = JSON.parse(keystoreData);
   keythereum.recover(password, keyStore, (err, privateKey) => {
-    if (err) cb(err, null)
+    if (err) cb({ 'code': 102, 'error': err }, null)
     else cb(null, privateKey)
   })
 }
@@ -53,19 +53,27 @@ ETHManager.prototype.getAddress = function (privateKey, cb) {
 
     cb(null, address);
   } catch (error) {
-    cb(error, null);
+    cb({ 'code': 103, 'error': error }, null);
   }
 }
 
 ETHManager.prototype.getBalance = function (accountAddr, cb) {
   this.web3.eth.getBalance(accountAddr, (err, balance) => {
-    cb(err, balance);
+    cb({ 'code': 104, 'error': err }, balance);
+  })
+}
+
+ETHManager.prototype.getTransactionCount = function (accountAddr, cb) {
+  this.web3.eth.getTransactionCount(accountAddr, 'pending', (err, txCount) => {
+    cb({ 'code': 105, 'error': error }, txCount);
   })
 }
 
 ETHManager.prototype.sendRawTransaction = function (txData, cb) {
+  txData = txData.toString();
   this.web3.eth.sendRawTransaction(txData, (err, txHash) => {
-    if (err) cb(err, null);
+    console.log('error', err);
+    if (err) cb({ 'code': 106, 'error': err }, null);
     else cb(null, txHash);
   })
 }
@@ -83,13 +91,20 @@ ETHManager.prototype.transferAmount = function (fromAddr, toAddr, amount, privat
   tx.sign(new Buffer(privateKey));
   let serializedTx = tx.serialize();
   this.web3.eth.sendRawTransaction('0x' + serializedTx.toString('hex'), (err, txDash) => {
-    cb(err, txDash)
+    cb({ 'code': 107, 'error': err }, txDash)
   })
 }
 
 ETHManager.prototype.gettransactionreceipt = function (txHash, cb) {
   this.web3.eth.getTransactionReceipt(txHash, (err, receipt) => {
-    if (err) cb(err, null);
+    if (err) cb({ 'code': 108, 'error': err }, null);
+    else cb(null, receipt);
+  })
+}
+
+ETHManager.prototype.getTransaction = function (txHash, cb) {
+  this.web3.eth.getTransaction(txHash, (err, receipt) => {
+    if (err) cb({ 'code': 109, 'error': err }, null);
     else cb(null, receipt);
   })
 }

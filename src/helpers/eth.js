@@ -1,8 +1,54 @@
+import md5 from 'md5'
+import redis from 'redis'
+import sleep from 'sleep'
+import async from 'async'
+
 import { ETHManager, rinkeby, mainnet } from '../eth/eth';
 import { SentinelMain, SentinelRinkeby } from '../eth/sentinel_contract';
+import { DECIMALS, COINBASE_ADDRESS, COINBASE_PRIVATE_KEY, SESSIONS_SALT } from '../utils/config';
 import * as VpnManager from '../eth/vpn_contract';
 
-import { DECIMALS, COINBASE_ADDRESS, COINBASE_PRIVATE_KEY } from '../utils/config';
+var redisClient = redis.createClient();
+
+const getEncodedSessionId = (accountAddr, index, cb) => {
+  accountAddr = accountAddr.toString('utf8');
+  index = index.toString();
+  index = index.toString('utf8')
+  let sessionId = md5(accountAddr + index + SESSIONS_SALT)
+  return cb(sessionId)
+}
+
+const getValidNonce = (accountAddr, net, cb) => {
+  let key = accountAddr + '_' + net;
+  let previousNonce = redisClient.get(key);
+  let error = -1;
+  let nonce = -1;
+
+  if (previousNonce)
+    previousNonce = parseInt(previousNonce);
+
+  if (net == 'main') {
+    mainnet.getVpnSessionCount(accountAddr, (err, nonce) => {
+      if (!err && (!previousNonce || nonce > previousNonce)) {
+        redisClient.set(key, nonce)
+        return cb(nonce)
+      } else {
+        sleep.sleep(1)
+        return getValidNonce(accountAddr, net, cb)
+      }
+    })
+  } else if (net == 'rinkeby') {
+    rinkeby.getVpnSessionCount(accountAddr, (err, non) => {
+      if (!err && (!previousNonce || nonce > previousNonce)) {
+        redisClient.set(key, nonce)
+        return cb(nonce)
+      } else {
+        sleep.sleep(1)
+        return getValidNonce(accountAddr, net, cb)
+      }
+    })
+  }
+}
 
 export const createAccount = (password, cb) => {
   mainnet.createAccount(password, (err, accountDetails) => {
@@ -152,7 +198,7 @@ export const transferAmount = (fromAddr, toAddr, amount, unit, keystore, passwor
   }
 }
 
-export const getVpnUsage = (accountAddr, cb) => {
+export const getVpnUsage = async (accountAddr, cb) => {
   let usage = {
     'due': 0,
     'stats': {
@@ -162,31 +208,36 @@ export const getVpnUsage = (accountAddr, cb) => {
     },
     'sessions': []
   }
-  VpnManager.getVpnSessions(accountAddr, (err, sessions) => {
+  VpnManager.getVpnSessionCount(accountAddr, (err, sessions) => {
+    console.log('sessions', sessions)
     if (!err) {
-      for (let index = 0; index < sessions; index++) {
-        VpnManager.getVpnUsage(accountAddr, index, (error, _usage) => {
-          if (!error) {
-            if (!_usage[5])
-              usage['due'] += _usage[3] / (DECIMALS * 1.0)
-            usage['stats']['receivedBytes'] += _usage[1]
-            usage['stats']['duration'] += _usage[2]
-            usage['stats']['amount'] += _usage[3] / (DECIMALS * 1.0)
-            usage['sessions'].append({
-              'id': index,
-              'accountAddr': _usage[0],
-              'receivedBytes': _usage[1],
-              'duration': _usage[2],
-              'amount': _usage[3] / (DECIMALS * 1.0),
-              'timeStamp': _usage[4],
-              'isPayed': _usage[5]
-            })
-          } else {
-            cb(error, null)
-          }
+      async.times(sessions, (index, next) => {
+        getEncodedSessionId(accountAddr, index, (sessionId) => {
+          VpnManager.getVpnUsage(accountAddr, sessionId, (error, _usage) => {
+            if (!error) {
+              if (!_usage[5])
+                usage['due'] += _usage[3]
+              usage['stats']['receivedBytes'] += parseInt(_usage[1])
+              usage['stats']['duration'] += parseInt(_usage[2])
+              usage['stats']['amount'] += parseInt(_usage[3])
+              usage['sessions'].push({
+                'id': index,
+                'accountAddr': _usage[0],
+                'receivedBytes': _usage[1],
+                'sessionDuration': _usage[2],
+                'amount': _usage[3],
+                'timeStamp': _usage[4],
+                'isPayed': _usage[5]
+              })
+              next()
+            } else {
+              return cb(error, null)
+            }
+          })
         })
-      }
-      cb(null, usage)
+      }, () => {
+        return cb(null, usage)
+      })
     } else {
       cb(err, null)
     }
@@ -196,32 +247,36 @@ export const getVpnUsage = (accountAddr, cb) => {
 export const payVpnSession = (fromAddr, amount, sessionId, net, txData, paymentType, cb) => {
   let errors = []
   let txHashes = []
+
   rawTransaction(txData, net, (err1, txHash1) => {
     if (!err1) {
       txHashes.push(txHash1)
-      if (paymentType == 'normal') {
-        VpnManager.payVpnSession(fromAddr, amount, sessionId, (err2, txHash2) => {
-          if (!err2) {
-            txHashes.push(txHash2)
-            cb(errors, txHashes)
-          } else {
-            errors.push(err2)
-            cb(errors, txHashes)
-          }
-        })
-      } else if (paymentType == 'init') {
-        VpnManager.setInitialPayment(fromAddr, (err2, txHash2) => {
-          if (!err2) {
-            txHashes.push(txHash2)
-            cb(errors, txHashes)
-          } else {
-            errors.push(err2)
-            cb(errors, txHashes)
-          }
-        })
-      }
+      getValidNonce(COINBASE_ADDRESS, 'rinkeby', (nonce) => {
+        if (paymentType == 'init') {
+          VpnManager.setInitialPayment(fromAddr, nonce, (err2, txHash2) => {
+            if (!err2) {
+              txHashes.push(txHash2)
+              return cb(errors, txHashes)
+            } else {
+              errors.push(err2)
+              return cb(errors, txHashes)
+            }
+          })
+        } else if (paymentType == 'normal') {
+          VpnManager.payVpnSession(fromAddr, amount, sessionId, nonce, (err2, txHash2) => {
+            if (!err2) {
+              txHashes.push(txHash2)
+              return cb(errors, txHashes)
+            } else {
+              errors.push(err2)
+              return cb(errors, txHashes)
+            }
+          })
+        }
+      })
     } else {
       errors.push(err1)
+      return cb(errors, txHashes);
     }
   })
 }

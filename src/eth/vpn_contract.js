@@ -10,9 +10,9 @@ import {
 
 let VPN = rinkeby.web3.eth.contract(VPNSERVICE_ABI).at(VPNSERVICE_ADDRESS);
 
-export const payVpnSession = (accountAddr, amount, sessionId, cb) => {
+export const payVpnSession = (accountAddr, amount, sessionId, nonce, cb) => {
   let rawTx = {
-    nonce: rinkeby.web3.toHex(500000),
+    nonce: nonce,/* rinkeby.web3.toHex(500000), */
     gasPrice: rinkeby.web3.toHex(5000000000),
     gasLimit: rinkeby.web3.toHex(500000),
     to: VPNSERVICE_ADDRESS,
@@ -23,15 +23,15 @@ export const payVpnSession = (accountAddr, amount, sessionId, cb) => {
   let tx = new Tx(rawTx);
   tx.sign(Buffer.from(COINBASE_PRIVATE_KEY, 'hex'));
   let serializedTx = tx.serialize();
-  
+
   rinkeby.web3.eth.sendRawTransaction('0x' + serializedTx.toString('hex'), (err, txHash) => {
     cb(err, txHash)
   })
 }
 
-export const setInitialPayment = (accountAddr, isPayed = true) => {
+export const setInitialPayment = (accountAddr, nonce, isPayed = true) => {
   let rawTx = {
-    nonce: rinkeby.web3.toHex(500000),
+    nonce: nonce, /* rinkeby.web3.toHex(500000) */
     gasPrice: rinkeby.web3.toHex(5000000000),
     gasLimit: rinkeby.web3.toHex(500000),
     to: VPNSERVICE_ADDRESS,
@@ -57,8 +57,8 @@ export const getDueAmount = (accountAddr, cb) => {
     });
 }
 
-export const getVpnSessions = (accountAddr, cb) => {
-  VPN.getVpnSessionsOf(accountAddr, { from: COINBASE_ADDRESS },
+export const getVpnSessionCount = (accountAddr, cb) => {
+  VPN.getVpnSessionsCountOf(accountAddr, { from: COINBASE_ADDRESS },
     (err, rawSessions) => {
       let sessions = Number(rawSessions);
       cb(err, sessions)
@@ -66,7 +66,7 @@ export const getVpnSessions = (accountAddr, cb) => {
 }
 
 export const getInitialPayment = (account_addr, cb) => {
-  VPN.getInitialPaymentOf(account_addr, { from: COINBASE_ADDRESS },
+  VPN.getInitialPaymentStatusOf(account_addr, { from: COINBASE_ADDRESS },
     (err, isPayed) => {
       cb(null, isPayed);
     })
