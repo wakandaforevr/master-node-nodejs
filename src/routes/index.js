@@ -8,9 +8,10 @@ import HTTPStatus from 'http-status';
 import NodeRoutes from './node.routes';
 import ClientRoutes from './client.routes';
 import StatsRoutes from './stats.routes';
-import TokenRoutes from './token.routes'
+import TokenRoutes from './token.routes';
 
 import * as DevController from '../dev/free'
+import * as ErrorController from '../controllers/error.controller'
 
 import APIError from '../services/error';
 
@@ -40,7 +41,8 @@ routes.use('/node', NodeRoutes);
 routes.use('/stats', StatsRoutes);
 routes.use('/tokens', TokenRoutes);
 
-routes.use('/dev/free', DevController.getFreeAmount)
+routes.post('/logs/error', ErrorController.logTheError)
+routes.post('/dev/free', DevController.getFreeAmount)
 
 routes.all('*', (req, res, next) =>
   next(new APIError('Not Found!', HTTPStatus.NOT_FOUND, true)),

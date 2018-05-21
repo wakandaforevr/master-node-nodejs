@@ -90,8 +90,9 @@ ETHManager.prototype.transferAmount = function (fromAddr, toAddr, amount, privat
   let tx = new Tx(rawTx);
   tx.sign(new Buffer(privateKey));
   let serializedTx = tx.serialize();
-  this.web3.eth.sendRawTransaction('0x' + serializedTx.toString('hex'), (err, txDash) => {
-    cb({ 'code': 107, 'error': err }, txDash)
+  this.web3.eth.sendRawTransaction('0x' + serializedTx.toString('hex'), (err, txHash) => {
+    if (err) cb({ 'code': 107, 'error': err }, null)
+    else cb(null, txHash)
   })
 }
 
