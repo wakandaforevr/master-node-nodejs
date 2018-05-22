@@ -249,11 +249,11 @@ export const updateConnections = (req, res) => {
   async.waterfall([
     (next) => {
       global.db.collection('nodes').findOne({
-        accountAddr: accountAddr,
+        account_addr: accountAddr,
         token: token
       }, (err, resp) => {
-        if (err) next(err, null)
-        node = resp
+        if (err) next(err, null);
+        node = resp;
         next()
       })
     }, (next) => {
@@ -274,7 +274,9 @@ export const updateConnections = (req, res) => {
             if (!data) {
               connection['start_time'] = Date.now() / 1000;
               connection['end_time'] = null;
-              global.db.collection('connections').insertOne(connection)
+              global.db.collection('connections').insertOne(connection, (err, resp) => {
+                iterate()
+              })
             } else {
               global.db.collection('connections').findOneAndUpdate({
                 'vpn_addr': connection['vpn_addr'],
@@ -284,16 +286,15 @@ export const updateConnections = (req, res) => {
                   $set: {
                     'server_usage': connection['usage']
                   }
+                }, (err, resp) => {
+                  sessionNames.push(connection['session_name'])
+                  let endTime = connection['end_time'] || null
+                  if (endTime)
+                    cond = '$in'
+                  iterate()
                 })
-
-              sessionNames.push(connection['session_name'])
-              let endTime = connection['end_time'] || null
-
-              if (endTime)
-                cond = '$in'
             }
           })
-          iterate()
         }, () => {
           next()
         })
@@ -304,14 +305,14 @@ export const updateConnections = (req, res) => {
         }, null)
       }
     }, (next) => {
-      let endTime = parseInt(Date.now() / 1000)
+      let endTime = parseInt(Date.now() / 1000);
       let endedConnections = [];
+      var sesName = {};
+      sesName[cond] = sessionNames;
 
       global.db.collection('connections').updateMany({
         'vpn_addr': accountAddr,
-        'session_name': {
-          cond: sessionNames
-        },
+        'session_name': sesName,
         'end_time': null
       }, {
           '$set': {
@@ -321,9 +322,7 @@ export const updateConnections = (req, res) => {
           if (resp.modifiedCount > 0) {
             global.db.collection('connections').find({
               'vpn_addr': accountAddr,
-              'session_name': {
-                cond: sessionNames
-              },
+              'session_name': sesName,
               'end_time': endTime
             }).toArray((err, resp) => {
               next(null, resp)
@@ -334,17 +333,18 @@ export const updateConnections = (req, res) => {
         })
     }, (endedConnections, next) => {
       async.eachSeries(endedConnections, (connection, iterate) => {
-        let toAddr = parseInt(connection['client_addr']);
+        let toAddr = (connection['client_addr']);
         let sentBytes = parseInt(connection['server_usage']['down']);
         let sessionDuration = parseInt(connection['end_time']) - parseInt(connection['start_time']);
         let amount = parseInt(calculateAmount(sentBytes, node['price_per_gb']) * DECIMALS);
         let timeStamp = Date.now() / 1000;
+
         EthHelper.addVpnUsage(accountAddr, toAddr, sentBytes, sessionDuration, amount, timeStamp,
           (err, txHash) => {
             if (err) txHashes.push(err)
             else txHashes.push(txHash)
+            iterate()
           })
-        iterate()
       }, () => {
         next(null, {
           'success': true,

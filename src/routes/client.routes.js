@@ -18,5 +18,6 @@ routes.get('/vpn/socks-list', VpnController.getSocksList);
 routes.post('/vpn/usage', VpnController.getVpnUsage);
 routes.post('/vpn/pay', VpnController.payVpnUsage);
 routes.post('/vpn/report', VpnController.reportPayment);
+routes.post('/update-connection', VpnController.updateConnection);
 
 export default routes;

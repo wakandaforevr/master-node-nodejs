@@ -5,7 +5,7 @@ import async from 'async'
 
 import { ETHManager, rinkeby, mainnet } from '../eth/eth';
 import { SentinelMain, SentinelRinkeby } from '../eth/sentinel_contract';
-import { DECIMALS, COINBASE_ADDRESS, COINBASE_PRIVATE_KEY, SESSIONS_SALT } from '../utils/config';
+import { DECIMALS, COINBASE_ADDRESS, COINBASE_PRIVATE_KEY, SESSIONS_SALT, LIMIT_10MB, LIMIT_100MB } from '../utils/config';
 import * as VpnManager from '../eth/vpn_contract';
 
 var redisClient = redis.createClient();
@@ -164,8 +164,8 @@ export const getDueAmount = (accountAddr, cb) => {
     });
 }
 
-export const getvpnsessions = (account_addr, cb) => {
-  VpnManager.getvpnsessions(account_addr, (err, sessions) => {
+export const getVpnSessionCount = (account_addr, cb) => {
+  VpnManager.getVpnSessionCount(account_addr, (err, sessions) => {
     cb(err, sessions);
   })
 }
@@ -282,8 +282,92 @@ export const payVpnSession = (fromAddr, amount, sessionId, net, txData, paymentT
 }
 
 export const addVpnUsage = (fromAddr, toAddr, sentBytes, sessionDuration, amount, timeStamp, cb) => {
-  VpnManager.addVpnUsage(fromAddr, toAddr, sentBytes, sessionDuration, amount, timeStamp,
-    (err, resp) => {
-      cb(err, resp)
-    })
+  let err = null;
+  let txHash = null;
+  let makeTx = false;
+  let sessionId = null;
+  let _usage = null;
+
+  sentBytes = parseInt(sentBytes);
+  sessionDuration = parseInt(sessionDuration);
+  amount = parseInt(amount);
+
+  async.waterfall([
+    (next) => {
+      getVpnSessionCount(toAddr, (err, sessionsCount) => {
+        if (!err) {
+          getEncodedSessionId(toAddr, sessionsCount, (sessId) => {
+            sessionId = sessId;
+            next();
+          })
+        } else {
+          next();
+        }
+      })
+    }, (next) => {
+      global.db.collection('usage').findOne({
+        'from_addr': fromAddr,
+        'to_addr': toAddr
+      }, (err, usage) => {
+        _usage = usage
+        next()
+      })
+    }, (next) => {
+      if (!_usage) {
+        if (sentBytes > LIMIT_10MB && sentBytes < LIMIT_100MB) {
+          global.db.usage.insertOne({
+            'from_addr': fromAddr,
+            'to_addr': toAddr,
+            'sent_bytes': sentBytes,
+            'session_duration': sessionDuration,
+            'amount': amount,
+            'timestamp': timeStamp
+          }, (err, resp) => {
+            next()
+          })
+        } else if (sentBytes >= LIMIT_100MB) {
+          makeTx = true;
+          next()
+        }
+      } else if (parseInt(_usage['sent_bytes']) + sentBytes < LIMIT_100MB) {
+        global.db.collection('usage').findOneAndUpdate({
+          'from_addr': fromAddr,
+          'to_addr': toAddr
+        }, {
+            '$set': {
+              'sent_bytes': _usage['sent_bytes'] + sentBytes,
+              'session_duration': _usage['session_duration'] + sessionDuration,
+              'amount': _usage['amount'] + amount,
+              'timestamp': timeStamp
+            }
+          }, (err, resp) => {
+            next()
+          })
+      } else {
+        sentBytes = parseInt(_usage['sent_bytes']) + sentBytes;
+        sessionDuration = parseInt(_usage['session_duration']) + sessionDuration;
+        amount = int(_usage['amount']) + amount;
+        make_tx = true;
+        global.db.usage.findOneAndDelete({
+          'from_addr': fromAddr,
+          'to_addr': toAddr
+        }, (err, resp) => {
+          next()
+        })
+      }
+    }, (next) => {
+      if (makeTx) {
+        getValidNonce(COINBASE_ADDRESS, 'rinkeby', (nonce) => {
+          VpnManager.addVpnUsage(fromAddr, toAddr, sentBytes, sessionDuration, amount, timeStamp, nonce,
+            (err, txHash) => {
+              next(err, txHash)
+            })
+        })
+      } else {
+        next(null, null)
+      }
+    }
+  ], (err, resp) => {
+    cb(err, resp);
+  })
 }

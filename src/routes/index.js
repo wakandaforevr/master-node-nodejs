@@ -41,11 +41,11 @@ routes.use('/node', NodeRoutes);
 routes.use('/stats', StatsRoutes);
 routes.use('/tokens', TokenRoutes);
 
-routes.post('/logs/error', ErrorController.logTheError)
-routes.post('/dev/free', DevController.getFreeAmount)
+routes.post('/logs/error', ErrorController.logTheError);
+routes.post('/dev/free', DevController.getFreeAmount);
 
 routes.all('*', (req, res, next) =>
-  next(new APIError('Not Found!', HTTPStatus.NOT_FOUND, true)),
+  next(new APIError('Not Found!', HTTPStatus.NOT_FOUND, true))
 );
 
 routes.use(logErrorService);

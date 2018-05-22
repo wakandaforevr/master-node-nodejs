@@ -336,3 +336,115 @@ export const getVpnUsage = (req, res) => {
     }
   });
 }
+
+export const updateConnection = (req, res) => {
+  // let token = req.body['token']
+  let accountAddr = req.body['account_addr'].toLowerCase()
+  let connections = req.body['connections']
+  let txHashes = []
+  let sessionNames = []
+  let node = null
+  let endedConnections = []
+
+  async.waterfall([
+    (next) => {
+      global.db.collection('nodes').findOne({
+        account_addr: accountAddr,
+      }, (err, resp) => {
+        if (err) next(err, null);
+        node = resp;
+        next()
+      })
+    }, (next) => {
+      if (node) {
+        async.eachSeries(connections, (connection, iterate) => {
+          connection['vpn_addr'] = accountAddr;
+          let address = connection['account_addr'] || null;
+
+          if (address) {
+            connection['client_addr'] = address.toString();
+            delete connection['account_addr'];
+          }
+
+          global.db.collection('connections').findOne({
+            'vpn_addr': connection['vpn_addr'],
+            'session_name': connection['session_name']
+          }, (err, data) => {
+            if (!data) {
+              connection['start_time'] = Date.now() / 1000;
+              connection['end_time'] = null;
+              global.db.collection('connections').insertOne(connection, (err, resp) => {
+                iterate()
+              })
+            } else {
+              if (connection['usage']) {
+                global.db.collection('connections').findOneAndUpdate({
+                  'vpn_addr': connection['vpn_addr'],
+                  'session_name': connection['session_name'],
+                  'end_time': null
+                }, {
+                    '$set': {
+                      'client_usage': connection['usage']
+                    }
+                  }, (err, resp) => {
+                    iterate()
+                  })
+              } else {
+                let endTime = parseInt(Date.now() / 1000);
+                global.db.collection('connections').updateMany({
+                  'vpn_addr': connection['vpn_addr'],
+                  'session_name': connection['session_name'],
+                  'end_time': null
+                }, {
+                    '$set': {
+                      'end_time': end_time
+                    }
+                  }, (err, resp) => {
+                    if (resp.modifiedCount > 0) {
+                      db.collection('connections').find({
+                        'vpn_addr': connection['vpn_addr'],
+                        'session_name': connection['session_name'],
+                        'end_time': endTime
+                      }, (err, endedCons) => {
+                        endedCons = endedConnections
+                        async.eachSeries(endedConnections, (connection, iterate) => {
+                          let toAddr = connection['client_addr'].toLowerCase()
+                          let sentBytes = parseInt(connection['client_usage']['down'])
+                          let sessionDuration = parseInt(connection['end_time']) - parseInt(connection['start_time'])
+                          let amount = parseInt(amount)
+                          let timeStamp = parseInt(Date.now() / 1000)
+
+                          EthHelper.addVpnUsage(accountAddr, toAddr, sentBytes, sessionDuration, amount, timeStamp, (err, txHash) => {
+                            if (err) txHashes.push(error)
+                            else txHashes.push(txHash)
+                            iterate()
+                          })
+                        }, () => {
+                          
+                        })
+                      })
+                    } else {
+                      iterate()
+                    }
+                  })
+              }
+            }
+          })
+        }, () => {
+          next(null, {
+            'success': true,
+            'message': 'Connection details updated successfully.',
+            'tx_hashes': txHashes
+          })
+        })
+      } else {
+        next({
+          'success': false,
+          'message': 'Can\'t find node with given details.'
+        }, null)
+      }
+    }], (err, resp) => {
+      if (err) res.send(err)
+      else res.send(resp)
+    })
+}

@@ -86,7 +86,7 @@ export const addVpnUsage = (fromAddr, toAddr, sentBytes, sessionDuration, amount
       gasLimit: rinkeby.web3.toHex(500000),
       to: VPNSERVICE_ADDRESS,
       value: '0x0',
-      data: VPN.addVpnUsage.getData(fromAddr, toAddr, sentBytes, sessionDuration, amount, timeStamp)
+      data: VPN.addVpnUsage.getData(fromAddr, toAddr, sentBytes, sessionDuration, amount, timeStamp, '')
     }
 
     let tx = new Tx(rawTx);
@@ -99,6 +99,6 @@ export const addVpnUsage = (fromAddr, toAddr, sentBytes, sessionDuration, amount
         else cb(null, txHash);
       });
   } catch (error) {
-    cb(cb, null)
+    cb(error, null)
   }
 }
