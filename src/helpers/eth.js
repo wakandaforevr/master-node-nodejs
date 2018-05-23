@@ -202,14 +202,13 @@ export const getVpnUsage = async (accountAddr, cb) => {
   let usage = {
     'due': 0,
     'stats': {
-      'receivedBytes': 0,
+      'received_bytes': 0,
       'duration': 0,
       'amount': 0
     },
     'sessions': []
   }
   VpnManager.getVpnSessionCount(accountAddr, (err, sessions) => {
-    console.log('sessions', sessions)
     if (!err) {
       async.times(sessions, (index, next) => {
         getEncodedSessionId(accountAddr, index, (sessionId) => {
@@ -217,17 +216,17 @@ export const getVpnUsage = async (accountAddr, cb) => {
             if (!error) {
               if (!_usage[5])
                 usage['due'] += _usage[3]
-              usage['stats']['receivedBytes'] += parseInt(_usage[1])
+              usage['stats']['received_bytes'] += parseInt(_usage[1])
               usage['stats']['duration'] += parseInt(_usage[2])
               usage['stats']['amount'] += parseInt(_usage[3])
               usage['sessions'].push({
                 'id': index,
-                'accountAddr': _usage[0],
-                'receivedBytes': _usage[1],
-                'sessionDuration': _usage[2],
+                'account_addr': _usage[0],
+                'received_bytes': _usage[1],
+                'session_duration': _usage[2],
                 'amount': _usage[3],
-                'timeStamp': _usage[4],
-                'isPayed': _usage[5]
+                'timestamp': _usage[4],
+                'is_paid': _usage[5]
               })
               next()
             } else {

@@ -25,11 +25,12 @@ const calculateAmount = (usedBytes, pricePerGB) => {
 * @api {post} /node/register VPN registration.
 * @apiName RegisterNode
 * @apiGroup NODE
-* @apiParam {String} accountAddr Account address.
+* @apiParam {String} account_addr Account address.
+* @apiParam {String} price_per_gb price of data usage for GB
 * @apiParam {String} ip Internet Protocal of the VPN node.
 * @apiParam {String} location location of the VPN node.
-* @apiParam {String} netSpeed Net Speed of the VPN node.
-* @apiParam {String} vpn status of the VPN node.
+* @apiParam {String} net_speed Net Speed of the VPN node.
+* @apiParam {String} vpn_type Type of vpn that the user want to give.
 * @apiSuccess {String} token Token id for the node.
 * @apiSuccess {String} message Node registered successfully.
 */
@@ -62,7 +63,6 @@ export const registerNode = (req, res) => {
     }, (next) => {
       global.db.collection('nodes').findOne({ "account_addr": accountAddr },
         (err, node) => {
-          console.log('err, node', err, node)
           if (!err) {
             next(null, node)
           } else next({
@@ -72,7 +72,6 @@ export const registerNode = (req, res) => {
         })
     }, (node, next) => {
       if (!node) {
-        console.log('if')
         global.db.collection('nodes').insertOne({
           'account_addr': accountAddr,
           'token': token,
@@ -99,7 +98,6 @@ export const registerNode = (req, res) => {
           }
         })
       } else {
-        console.log('else')
         global.db.collection('nodes').findOneAndUpdate({
           'account_addr': accountAddr
         }, {
@@ -113,7 +111,6 @@ export const registerNode = (req, res) => {
               'net_speed': netSpeed
             }
           }, (err, resp) => {
-            console.log('err, resp', err, resp)
             if (err) {
               next({
                 'success': false,
@@ -233,8 +230,9 @@ export const updateNodeInfo = (req, res) => {
 * @apiGroup NODE
 * @apiParam {String} token Token Id of Node.
 * @apiParam {String} accountAddr Account address.
-* @apiParam {String[]} connections connected nodes list
+* @apiParam {String[]} connections connected nodes list.
 * @apiSuccess {String} message Connection details updated successfully.
+* @apiSuccess {Object[]} tx_hashes list transaction hashes.
 */
 
 export const updateConnections = (req, res) => {
@@ -245,6 +243,8 @@ export const updateConnections = (req, res) => {
   let sessionNames = []
   let cond = '$nin'
   let node = null
+
+  console.log('------------------------------------------------------------------------update connections -----------------------------------------------')
 
   async.waterfall([
     (next) => {
@@ -403,7 +403,7 @@ export const deRegisterNode = (req, res) => {
 * @apiParam {String} toAddr Account address whose VPN is.
 * @apiParam {Number} sentBytes Bytes used by the client.
 * @apiParam {Number} sessionDuration Duration of the VPN connection.
-* @apiParam {String} txHash Hash of the transaction.
+* @apiSuccess {String} txHash Hash of the transaction.
 * @apiSuccess {String} message VPN usage data will be added soon.
 */
 
@@ -444,6 +444,13 @@ export const addVpnUsage = (req, res) => {
 
 //---------------------------------------------------------------------------------------
 
+/**
+* @api {get} /stats/data/daily-stats daily usage of vpns.
+* @apiName GetDailyDataCount
+* @apiGroup NODE
+* @apiSuccess {Object[]} stats Total daily data downloaded by the clients.
+*/
+
 export const getDailyDataCount = (req, res) => {
   let dailyCount = []
   async.waterfall([
@@ -476,10 +483,8 @@ export const getDailyDataCount = (req, res) => {
           "_id": 1
         }
       }]).toArray((err, result) => {
-        result.map((doc) => {
-          dailyCount.push(doc)
-        })
-        next(null, result)
+        dailyCount = result
+        next()
       })
     }
   ], (err, resp) => {
@@ -492,6 +497,13 @@ export const getDailyDataCount = (req, res) => {
   })
 }
 
+/**
+* @api {get} /stats/data/total-data total data usage.
+* @apiName getTotalDataCount
+* @apiGroup NODE
+* @apiSuccess {Number} stats total data downloaded by the clients.
+*/
+
 export const getTotalDataCount = (req, res) => {
   let totalCount = []
   global.db.collection('connections').aggregate([{
@@ -503,15 +515,19 @@ export const getTotalDataCount = (req, res) => {
     }
   }]).toArray((err, result) => {
     if (err) res.send(err)
-    result.map((doc) => {
-      totalCount.push(doc)
-    })
     res.send({
       'success': true,
-      'stats': totalCount
+      'stats': result
     })
   })
 }
+
+/**
+* @api {get} /stats/data/last-data last day's data usage.
+* @apiName getLastDataCount
+* @apiGroup NODE
+* @apiSuccess {Object[]} stats Data usage of last day.
+*/
 
 export const getLastDataCount = (req, res) => {
   global.db.collection('connections').aggregate([
@@ -532,11 +548,18 @@ export const getLastDataCount = (req, res) => {
       } else {
         res.send({
           'success': true,
-          'average': resp
+          'stats': resp
         })
       }
     })
 }
+
+/**
+* @api {get} /stats/nodes/daily-stats registered nodes per day.
+* @apiName getDailyNodeCount
+* @apiGroup NODE
+* @apiSuccess {Object[]} stats total nodes registered per day.
+*/
 
 export const getDailyNodeCount = (req, res) => {
   let dailyCount = []
@@ -568,15 +591,19 @@ export const getDailyNodeCount = (req, res) => {
       "_id": 1
     }
   }]).toArray((err, result) => {
-    result.map((doc) => {
-      dailyCount.push(doc)
-    })
     res.send({
       'success': true,
-      'stats': dailyCount
+      'stats': result
     })
   })
 }
+
+/**
+* @api {get} /stats/nodes/total-nodes total registered nodes.
+* @apiName getTotalNodeCount
+* @apiGroup NODE
+* @apiSuccess {Number} stats total nodes registered.
+*/
 
 export const getTotalNodeCount = (req, res) => {
   global.db.collection('statistics').aggregate([{
@@ -615,11 +642,18 @@ export const getTotalNodeCount = (req, res) => {
     } else {
       res.send({
         'success': true,
-        'average': resp
+        'stats': resp
       })
     }
   })
 }
+
+/**
+* @api {get} /stats/nodes/daily-active active nodes per day.
+* @apiName getDailyActiveNodeCount
+* @apiGroup NODE
+* @apiSuccess {Object[]} stats List of nodes active per day.
+*/
 
 export const getDailyActiveNodeCount = (req, res) => {
   global.db.collection('statistics').aggregate([{
@@ -658,11 +692,18 @@ export const getDailyActiveNodeCount = (req, res) => {
     } else {
       res.send({
         'success': true,
-        'average': resp
+        'stats': resp
       })
     }
   })
 }
+
+/**
+* @api {get} /stats/nodes/average-nodes average nodes per day
+* @apiName getAverageNodesCount
+* @apiGroup NODE
+* @apiSuccess {Object} average Average list of node registered count per day.
+*/
 
 export const getAverageNodesCount = (req, res) => {
   global.db.collection('nodes').aggregate([{
@@ -706,6 +747,13 @@ export const getAverageNodesCount = (req, res) => {
   })
 }
 
+/**
+* @api {get} /stats/nodes/active-count active nodes count
+* @apiName getActiveNodeCount
+* @apiGroup NODE
+* @apiSuccess {Number} stats Active nodes count .
+*/
+
 export const getActiveNodeCount = (req, res) => {
   global.db.collection('nodes').find({ "vpn.status": "up" }).toArray((err, data) => {
     let count = data.length
@@ -717,6 +765,13 @@ export const getActiveNodeCount = (req, res) => {
     })
   })
 }
+
+/**
+* @api {get} /stats/sessions/daily-stats daily sessions count
+* @apiName getDailySessionCount
+* @apiGroup NODE
+* @apiSuccess {Object[]} stats List of daily using sessions count
+*/
 
 export const getDailySessionCount = (req, res) => {
   let dailyCount = []
@@ -747,7 +802,6 @@ export const getDailySessionCount = (req, res) => {
       "_id": 1
     }
   }]).toArray((err, result) => {
-    console.log('result', result)
     result.forEach((doc) => {
       dailyCount.push(doc)
     })
@@ -757,6 +811,13 @@ export const getDailySessionCount = (req, res) => {
     });
   })
 }
+
+/**
+* @api {get} /stats/sessions/average-count average sessions
+* @apiName getAverageSessionsCount
+* @apiGroup NODE
+* @apiSuccess {Object[]} average List of average sessions count.
+*/
 
 export const getAverageSessionsCount = (req, res) => {
   global.db.collection('connections').aggregate([{
@@ -800,6 +861,13 @@ export const getAverageSessionsCount = (req, res) => {
   })
 }
 
+/**
+* @api {get} /stats/sessions/active-count active session count.
+* @apiName getActiveSessionCount
+* @apiGroup NODE
+* @apiSuccess {Number} count Active sessions count.
+*/
+
 export const getActiveSessionCount = (req, res) => {
   global.db.collection('connections').find({ endTime: null }).toArray((err, data) => {
     let count = data.length
@@ -811,6 +879,13 @@ export const getActiveSessionCount = (req, res) => {
     })
   })
 }
+
+/**
+* @api {get} /stats/time/daily-stats daily duration usage.
+* @apiName getDailyDurationCount
+* @apiGroup NODE
+* @apiSuccess {Object[]} stats Daily duration of the vpn usage.
+*/
 
 export const getDailyDurationCount = (req, res) => {
   let dailyCount = []
@@ -860,6 +935,13 @@ export const getDailyDurationCount = (req, res) => {
   })
 }
 
+/**
+* @api {get} /stats/time/average-daily average duration per everyday .
+* @apiName getDailyAverageDuration
+* @apiGroup NODE
+* @apiSuccess {String} average List of daily average duration of the vpn.
+*/
+
 export const getDailyAverageDuration = (req, res) => {
   global.db.collection('connections').aggregate([{
     '$project': {
@@ -903,6 +985,13 @@ export const getDailyAverageDuration = (req, res) => {
   })
 }
 
+/**
+* @api {get} /stats/time/average-duration average duration of sessions.
+* @apiName getAverageDuration
+* @apiGroup NODE
+* @apiSuccess {Number} average daily average duration of vpn usage.
+*/
+
 export const getAverageDuration = (req, res) => {
   let avgCount = []
   global.db.collection('connections').aggregate([{
@@ -936,6 +1025,13 @@ export const getAverageDuration = (req, res) => {
     })
   })
 }
+
+/**
+* @api {get} /stats/time/last-average last day's average duration.
+* @apiName getLastAverageDuration
+* @apiGroup NODE
+* @apiSuccess {Number} average Average duration of the last day.
+*/
 
 export const getLastAverageDuration = (req, res) => {
   global.db.collection('connections').aggregate([
@@ -974,6 +1070,14 @@ export const getLastAverageDuration = (req, res) => {
       }
     })
 }
+
+/**
+* @api {get} stats/node?addr = {vpn address} vpn address stats.
+* @apiName getNodeStatistics
+* @apiGroup NODE
+* @apiParam {String} addr vpn address of the node.
+* @apiSuccess {Object} average The usage of the node.
+*/
 
 export const getNodeStatistics = (req, res) => {
   let account_addr = req.query.addr;
