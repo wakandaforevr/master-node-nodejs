@@ -8,10 +8,6 @@ import HTTPStatus from 'http-status';
 import UserRoutes from './user.routes';
 import PostRoutes from './post.routes';
 import SeedRoutes from './seed.routes';
-import AccountRoutes from './account.routes';
-import VpnRoutes from './vpn.routes';
-import NodeRoutes from './node.routes';
-import TransactionRoutes from './transaction.routes';
 
 import APIError from '../services/error';
 
@@ -25,11 +21,6 @@ const isTest = process.env.NODE_ENV === 'test';
 
 routes.use('/users', UserRoutes);
 routes.use('/posts', PostRoutes);
-routes.use('/client/account', AccountRoutes);
-routes.use('/node/account', AccountRoutes);
-routes.use('/client/vpn', VpnRoutes);
-routes.use('/node', NodeRoutes);
-routes.use('/client/raw-transaction', TransactionRoutes);
 
 if (isDev || isTest) {
   routes.use('/seeds', SeedRoutes);

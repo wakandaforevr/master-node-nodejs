@@ -16,7 +16,7 @@ const app = express();
 middlewaresConfig(app);
 
 // Add the apiRoutes stack to the server
-app.use('/', ApiRoutes);
+app.use('/api', ApiRoutes);
 
 // We need this to make sure we don't run a second instance
 if (!module.parent) {

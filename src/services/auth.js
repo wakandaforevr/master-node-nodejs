@@ -56,18 +56,5 @@ const jwtLogin = new JWTStrategy(jwtOpts, async (payload, done) => {
 passport.use(localLogin);
 passport.use(jwtLogin);
 
-export const login = function(req, res, next) {
-  let user = {
-    email: req.body['email'],
-  };
-  User.findOne(user, function(err, result) {
-    if (err) res.status(200).send(err);
-    else {
-      req.user = result._doc;
-      next();
-    }
-  });
-};
-
 export const authLocal = passport.authenticate('local', { session: false });
 export const authJwt = passport.authenticate('jwt', { session: false });

@@ -8,12 +8,8 @@ import Joi from 'joi';
 export const validation = {
   login: {
     body: {
-      email: Joi.string()
-        .email()
-        .required(),
-      password: Joi.string()
-        .regex(/^[a-zA-Z0-9]{3,30}$/)
-        .required(),
+      email: Joi.string().email().required(),
+      password: Joi.string().regex(/^[a-zA-Z0-9]{3,30}$/).required(),
     },
   },
 };
@@ -47,9 +43,8 @@ export const validation = {
  *    email: 'email is required'
  *  }
  */
-export const login = (req, res, next) => {
-  //console.log('res.status : ',HTTPStatus.OK,req.user.toAuthJSON());
-  //res.status(HTTPStatus.OK).json(req.user.toAuthJSON());
-  console.log('user : ', req.user);
-  res.send(req.user);
-};
+export async function login(req, res, next) {
+  res.status(HTTPStatus.OK).json(req.user.toAuthJSON());
+
+  return next();
+}
