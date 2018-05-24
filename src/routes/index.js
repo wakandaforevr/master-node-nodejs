@@ -5,9 +5,13 @@
 import { Router } from 'express';
 import HTTPStatus from 'http-status';
 
-import UserRoutes from './user.routes';
-import PostRoutes from './post.routes';
-import SeedRoutes from './seed.routes';
+import NodeRoutes from './node.routes';
+import ClientRoutes from './client.routes';
+import StatsRoutes from './stats.routes';
+import TokenRoutes from './token.routes';
+
+import * as DevController from '../dev/free'
+import * as ErrorController from '../controllers/error.controller'
 
 import APIError from '../services/error';
 
@@ -19,15 +23,29 @@ const routes = new Router();
 const isDev = process.env.NODE_ENV === 'development';
 const isTest = process.env.NODE_ENV === 'test';
 
-routes.use('/users', UserRoutes);
-routes.use('/posts', PostRoutes);
+routes.get('/', (req, res) => {
+  res.status = 200
+  res.send({
+    'status': 'UP'
+  })
+})
 
-if (isDev || isTest) {
-  routes.use('/seeds', SeedRoutes);
-}
+routes.post('/', (req, res) => {
+  res.status(200).send({
+    'status': 'UP'
+  })
+})
+
+routes.use('/client', ClientRoutes);
+routes.use('/node', NodeRoutes);
+routes.use('/stats', StatsRoutes);
+routes.use('/tokens', TokenRoutes);
+
+routes.post('/logs/error', ErrorController.logTheError);
+routes.post('/dev/free', DevController.getFreeAmount);
 
 routes.all('*', (req, res, next) =>
-  next(new APIError('Not Found!', HTTPStatus.NOT_FOUND, true)),
+  next(new APIError('Not Found!', HTTPStatus.NOT_FOUND, true))
 );
 
 routes.use(logErrorService);
