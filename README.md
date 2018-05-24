@@ -1,7 +1,5 @@
 Sentnel node js repository
 
-# Always in progress 👷‍
-
 # Get Started
 
 - [Installation](https://github.com/EQuimper/nodejs-api-boilerplate#installation)
