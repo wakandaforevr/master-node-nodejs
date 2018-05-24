@@ -207,7 +207,7 @@ export const getVpnCredentials = (req, res) => {
           try {
             let token = uuid.v4();
             let ip = node.ip;
-            let port = 3000;
+            let port = 4000;
             let body = {
               account_addr: accountAddr,
               token: token
@@ -235,7 +235,7 @@ export const getVpnCredentials = (req, res) => {
         } else {
           next({
             'success': false,
-            'accountAddr': vpnAddr,
+            'account_addr': vpnAddr,
             'message': 'Initial payment status is empty.'
           }, null)
         }

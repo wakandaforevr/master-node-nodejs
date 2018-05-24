@@ -9,7 +9,7 @@ import * as EthHelper from '../helpers/eth'
 import { DECIMALS } from '../utils/config'
 
 const getLatency = (url, cb) => {
-  const avgLatencyCmd = "ping -c 2 183.82.119.118 | tail -1 | awk '{print $4}' | cut -d '/' -f 2"
+  const avgLatencyCmd = "ping -c 2 " + url + " | tail -1 | awk '{print $4}' | cut -d '/' -f 2"
   exec(avgLatencyCmd, (error, stdout, stderr) => {
     if (error)
       return cb({ 'error': 'error getting in latency' }, null)
@@ -52,7 +52,8 @@ export const registerNode = (req, res) => {
   accountAddr = accountAddr.toString();
   pricePerGB = parseFloat(pricePerGB);
   ip = ip.toString();
-  vpnType = vpnType.toString();
+  if (vpnType)
+    vpnType = vpnType.toString();
 
 
   async.waterfall([
@@ -338,7 +339,7 @@ export const updateConnections = (req, res) => {
     }, (endedConnections, next) => {
       async.eachSeries(endedConnections, (connection, iterate) => {
         let toAddr = (connection['client_addr']);
-        let sentBytes = parseInt(connection['server_usage']['down']);
+        let sentBytes = parseInt(connection['usage']['down']);
         let sessionDuration = parseInt(connection['end_time']) - parseInt(connection['start_time']);
         let amount = parseInt(calculateAmount(sentBytes, node['price_per_gb']) * DECIMALS);
         let timeStamp = Date.now() / 1000;
