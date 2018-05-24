@@ -12,7 +12,7 @@ const WHITELIST = {
 
 const devConfig = {
   JWT_SECRET: process.env.JWT_SECRET_DEV,
-  MONGO_URL: process.env.MONGO_URL_DEV,
+  MONGO_URL: process.env.MONGO_URL_DEV || 'mongodb://localhost:27017/',
 };
 
 const testConfig = {
