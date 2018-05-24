@@ -52,9 +52,9 @@ export const registerNode = (req, res) => {
   accountAddr = accountAddr.toString();
   pricePerGB = parseFloat(pricePerGB);
   ip = ip.toString();
-  if (vpnType)
+  if(vpnType) {
     vpnType = vpnType.toString();
-
+  }
 
   async.waterfall([
     (next) => {
