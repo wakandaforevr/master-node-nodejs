@@ -32,9 +32,9 @@ export const createAccount = (req, res) => {
       res.status = 200;
       message = {
         'success': true,
-        'accountAddr': result.walletAddress,
-        'privateKey': result.privateKey,
-        'keyStore': result.keystoreData,
+        'account_addr': result.walletAddress,
+        'private_key': result.privateKey,
+        'keystore': result.keystoreData,
         'message': 'Account created successfully. Please store the Private key and Keystore data safely.'
       };
     }

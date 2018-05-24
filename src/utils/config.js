@@ -185,4 +185,4 @@ module.exports.CENTRAL_WALLET_PRIVATE_KEY = ''
 module.exports.MAX_TX_TRY = 60
 module.exports.LIMIT_10MB = 10 * 1024 * 1024
 module.exports.LIMIT_100MB = 100 * 1024 * 1024
-module.exports.SESSIONS_SALT = 'ssWV2M1d9FqwOhyC'.toString('utf8')
+module.exports.SESSIONS_SALT = ''.toString('utf8')

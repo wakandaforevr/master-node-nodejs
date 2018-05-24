@@ -47,6 +47,8 @@ export const registerNode = (req, res) => {
   let joinedOn = Date.now() / 1000;
   let latency = null;
 
+  console.log('req.body', req.body)
+
   accountAddr = accountAddr.toString();
   pricePerGB = parseFloat(pricePerGB);
   ip = ip.toString();
@@ -243,6 +245,8 @@ export const updateConnections = (req, res) => {
   let sessionNames = []
   let cond = '$nin'
   let node = null
+
+  console.log('req.body', req.body);
 
   console.log('------------------------------------------------------------------------update connections -----------------------------------------------')
 
