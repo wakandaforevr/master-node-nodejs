@@ -206,15 +206,13 @@ export const getVpnCredentials = (req, res) => {
           try {
             let token = uuid.v4();
             let ip = node.ip;
-            let port = 4000;
+            let port = 3000;
             let body = {
               account_addr: accountAddr,
               token: token
             };
             let url = 'http://' + ip + ':' + port + '/token';
-            console.log('url', url, body);
             request.post({ url: url, body: JSON.stringify(body) }, (err, r, resp) => {
-              console.log('resp body11', err, resp)
               next(null, {
                 'success': true,
                 'ip': ip,
