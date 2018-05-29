@@ -52,7 +52,7 @@ export const registerNode = (req, res) => {
   accountAddr = accountAddr.toString();
   pricePerGB = parseFloat(pricePerGB);
   ip = ip.toString();
-  if(vpnType) {
+  if (vpnType) {
     vpnType = vpnType.toString();
   }
 
@@ -149,6 +149,8 @@ export const updateNodeInfo = (req, res) => {
   let token = req.body['token'];
   let accountAddr = req.body['account_addr'];
   let info = req.body['info'];
+  console.log('-------------------------------------------------------------------------in update node info-------------------------------------------------')
+  console.log('req.body', req.body)
 
   async.waterfall([
     (next) => {
@@ -201,6 +203,7 @@ export const updateNodeInfo = (req, res) => {
             }
           },
           (err, node) => {
+            console.log('node ', node)
             if (err) next(err, null);
             else next(null, node);
           })
@@ -247,10 +250,6 @@ export const updateConnections = (req, res) => {
   let cond = '$nin'
   let node = null
 
-  console.log('req.body', req.body);
-
-  console.log('------------------------------------------------------------------------update connections -----------------------------------------------')
-
   async.waterfall([
     (next) => {
       global.db.collection('nodes').findOne({
@@ -280,6 +279,10 @@ export const updateConnections = (req, res) => {
               connection['start_time'] = Date.now() / 1000;
               connection['end_time'] = null;
               global.db.collection('connections').insertOne(connection, (err, resp) => {
+                sessionNames.push(connection['session_name'])
+                let endTime = connection['end_time'] || null
+                if (endTime)
+                  cond = '$in'
                 iterate()
               })
             } else {
@@ -299,6 +302,7 @@ export const updateConnections = (req, res) => {
                   iterate()
                 })
             }
+
           })
         }, () => {
           next()
@@ -339,7 +343,7 @@ export const updateConnections = (req, res) => {
     }, (endedConnections, next) => {
       async.eachSeries(endedConnections, (connection, iterate) => {
         let toAddr = (connection['client_addr']);
-        let sentBytes = parseInt(connection['usage']['down']);
+        let sentBytes = parseInt(connection['server_usage']['down']);
         let sessionDuration = parseInt(connection['end_time']) - parseInt(connection['start_time']);
         let amount = parseInt(calculateAmount(sentBytes, node['price_per_gb']) * DECIMALS);
         let timeStamp = Date.now() / 1000;

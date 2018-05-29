@@ -107,8 +107,6 @@ export const getCurrentVpnUsage = (req, res) => {
   accountAddr = accountAddr.toLowerCase
   let sessionName = req.body['session_name']
 
-  console.log('current vpn usage', req.body);
-
   global.db.collection('connections').findOne({
     client_addr: accountAddr,
     session_name: sessionName
@@ -135,6 +133,7 @@ export const getCurrentVpnUsage = (req, res) => {
 */
 
 export const getVpnCredentials = (req, res) => {
+
   let accountAddr = req.body['account_addr'];
   let vpnAddr = req.body['vpn_addr'];
   let vpnAddrLen = vpnAddr.length;
@@ -215,7 +214,7 @@ export const getVpnCredentials = (req, res) => {
             let url = 'http://' + ip + ':' + port + '/token';
             console.log('url', url, body);
             request.post({ url: url, body: JSON.stringify(body) }, (err, r, resp) => {
-              console.log('resp body', resp)
+              console.log('resp body11', err, resp)
               next(null, {
                 'success': true,
                 'ip': ip,
@@ -356,8 +355,6 @@ export const getVpnUsage = (req, res) => {
 
 export const updateConnection = (req, res) => {
 
-  console.log('in update connection -----------------------------------------------------------------------in update connection')
-
   let accountAddr = req.body['account_addr'].toLowerCase()
   let connections = req.body['connections']
   let txHashes = []
@@ -467,6 +464,3 @@ export const updateConnection = (req, res) => {
       else res.send(resp)
     })
 }
-
-// url http://198.13.34.24:3000/ovpn { accountAddr: '0x6b6df9e25f7bf2e363ec1a52a7da4c4a64f5769e',
-// [dev.start]   token: '3b708713-2d94-4ce8-88fd-9522eb40a041' }
