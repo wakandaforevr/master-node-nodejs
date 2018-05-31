@@ -78,11 +78,11 @@ ETHManager.prototype.sendRawTransaction = function (txData, cb) {
   })
 }
 
-ETHManager.prototype.transferAmount = function (fromAddr, toAddr, amount, privateKey, cb) {
+ETHManager.prototype.transferAmount = function (fromAddr, toAddr, amount, privateKey, nonce, cb) {
   let rawTx = {
-    nonce: this.web3.toHex(500000),
-    gasPrice: this.web3.toHex(5000000000),
-    gasLimit: this.web3.toHex(500000),
+    nonce: nonce,
+    gasPrice: this.web3.toHex(this.web3.eth.gasPrice),
+    startGas: this.web3.toHex(1000000),
     to: toAddr,
     value: amount,
     data: ''

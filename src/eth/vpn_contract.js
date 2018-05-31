@@ -13,8 +13,8 @@ let VPN = rinkeby.web3.eth.contract(VPNSERVICE_ABI).at(VPNSERVICE_ADDRESS);
 export const payVpnSession = (accountAddr, amount, sessionId, nonce, cb) => {
   let rawTx = {
     nonce: nonce,/* rinkeby.web3.toHex(500000), */
-    gasPrice: rinkeby.web3.toHex(5000000000),
-    gasLimit: rinkeby.web3.toHex(500000),
+    gasPrice: rinkeby.web3.toHex(rinkeby.web3.gasPrice),
+    startGas: rinkeby.web3.toHex(1000000),
     to: VPNSERVICE_ADDRESS,
     value: '0x0',
     data: VPN.payVpnSession.getData(accountAddr, amount, sessionId)
@@ -32,8 +32,8 @@ export const payVpnSession = (accountAddr, amount, sessionId, nonce, cb) => {
 export const setInitialPayment = (accountAddr, nonce, isPayed = true) => {
   let rawTx = {
     nonce: nonce, /* rinkeby.web3.toHex(500000) */
-    gasPrice: rinkeby.web3.toHex(5000000000),
-    gasLimit: rinkeby.web3.toHex(500000),
+    gasPrice: rinkeby.web3.toHex(rinkeby.web3.gasPrice),
+    startGas: rinkeby.web3.toHex(1000000),
     to: VPNSERVICE_ADDRESS,
     value: '0x0',
     data: VPN.setInitialPaymentOf.getData(accountAddr, isPayed)
@@ -51,7 +51,7 @@ export const setInitialPayment = (accountAddr, nonce, isPayed = true) => {
 export const getDueAmount = (accountAddr, cb) => {
   VPN.getDueAmountOf(accountAddr, { from: COINBASE_ADDRESS },
     (err, rawDueAmount) => {
-      let dueAmount = Number(rawDueAmount);
+      let dueAmount = parseInt(rawDueAmount);
       dueAmount = dueAmount / Math.pow(10, 18);
       cb(err, dueAmount)
     });
@@ -60,7 +60,7 @@ export const getDueAmount = (accountAddr, cb) => {
 export const getVpnSessionCount = (accountAddr, cb) => {
   VPN.getVpnSessionsCountOf(accountAddr, { from: COINBASE_ADDRESS },
     (err, rawSessions) => {
-      let sessions = Number(rawSessions);
+      let sessions = parseInt(rawSessions);
       cb(err, sessions)
     });
 }
@@ -78,15 +78,15 @@ export const getVpnUsage = (accountAddr, index, cb) => {
   })
 }
 
-export const addVpnUsage = (fromAddr, toAddr, sentBytes, sessionDuration, amount, timeStamp, cb) => {
+export const addVpnUsage = (fromAddr, toAddr, sentBytes, sessionDuration, amount, timeStamp, sessionId, nonce, cb) => {
   try {
     let rawTx = {
-      nonce: rinkeby.web3.toHex(500000),
-      gasPrice: rinkeby.web3.toHex(5000000000),
-      gasLimit: rinkeby.web3.toHex(500000),
+      nonce: nonce,
+      gasPrice: rinkeby.web3.toHex(rinkeby.web3.gasPrice),
+      startGas: rinkeby.web3.toHex(1000000),
       to: VPNSERVICE_ADDRESS,
       value: '0x0',
-      data: VPN.addVpnUsage.getData(fromAddr, toAddr, sentBytes, sessionDuration, amount, timeStamp, '')
+      data: VPN.addVpnUsage.getData(fromAddr, toAddr, sentBytes, sessionDuration, amount, timeStamp, sessionId)
     }
 
     let tx = new Tx(rawTx);

@@ -411,7 +411,7 @@ export const updateConnection = (req, res) => {
                   'end_time': null
                 }, {
                     '$set': {
-                      'end_time': end_time
+                      'end_time': endTime
                     }
                   }, (err, resp) => {
                     if (resp.modifiedCount > 0) {

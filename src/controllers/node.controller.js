@@ -47,8 +47,6 @@ export const registerNode = (req, res) => {
   let joinedOn = Date.now() / 1000;
   let latency = null;
 
-  console.log('req.body', req.body)
-
   accountAddr = accountAddr.toString();
   pricePerGB = parseFloat(pricePerGB);
   ip = ip.toString();
@@ -149,8 +147,6 @@ export const updateNodeInfo = (req, res) => {
   let token = req.body['token'];
   let accountAddr = req.body['account_addr'];
   let info = req.body['info'];
-  console.log('-------------------------------------------------------------------------in update node info-------------------------------------------------')
-  console.log('req.body', req.body)
 
   async.waterfall([
     (next) => {
@@ -161,7 +157,6 @@ export const updateNodeInfo = (req, res) => {
           { 'account_addr': accountAddr, 'token': token },
           { '$set': { 'location': location } },
           (err, node) => {
-            console.log('node', node.value);
             if (err) next(err, null);
             else next(null, node);
           })
@@ -203,7 +198,6 @@ export const updateNodeInfo = (req, res) => {
             }
           },
           (err, node) => {
-            console.log('node ', node)
             if (err) next(err, null);
             else next(null, node);
           })

@@ -10,11 +10,11 @@ import * as VpnManager from '../eth/vpn_contract';
 
 var redisClient = redis.createClient();
 
-const getEncodedSessionId = (accountAddr, index, cb) => {
+const getEncodedSessionId = async (accountAddr, index, cb) => {
   accountAddr = accountAddr.toString('utf8');
   index = index.toString();
   index = index.toString('utf8')
-  let sessionId = md5(accountAddr + index + SESSIONS_SALT)
+  let sessionId = await md5(accountAddr + index + SESSIONS_SALT)
   return cb(sessionId)
 }
 
@@ -28,7 +28,7 @@ const getValidNonce = (accountAddr, net, cb) => {
     previousNonce = parseInt(previousNonce);
 
   if (net == 'main') {
-    mainnet.getVpnSessionCount(accountAddr, (err, nonce) => {
+    mainnet.getTransactionCount(accountAddr, (err, nonce) => {
       if (!err && (!previousNonce || nonce > previousNonce)) {
         redisClient.set(key, nonce)
         return cb(nonce)
@@ -38,7 +38,7 @@ const getValidNonce = (accountAddr, net, cb) => {
       }
     })
   } else if (net == 'rinkeby') {
-    rinkeby.getVpnSessionCount(accountAddr, (err, non) => {
+    rinkeby.getTransactionCount(accountAddr, (err, nonce) => {
       if (!err && (!previousNonce || nonce > previousNonce)) {
         redisClient.set(key, nonce)
         return cb(nonce)
@@ -220,7 +220,7 @@ export const getVpnUsage = async (accountAddr, cb) => {
               usage['stats']['duration'] += parseInt(_usage[2])
               usage['stats']['amount'] += parseInt(_usage[3])
               usage['sessions'].push({
-                'id': index,
+                'id': sessionId,
                 'account_addr': _usage[0],
                 'received_bytes': _usage[1],
                 'session_duration': _usage[2],
@@ -314,7 +314,7 @@ export const addVpnUsage = (fromAddr, toAddr, sentBytes, sessionDuration, amount
     }, (next) => {
       if (!_usage) {
         if (sentBytes > LIMIT_10MB && sentBytes < LIMIT_100MB) {
-          global.db.usage.insertOne({
+          global.db.collection('usage').insertOne({
             'from_addr': fromAddr,
             'to_addr': toAddr,
             'sent_bytes': sentBytes,
@@ -326,6 +326,8 @@ export const addVpnUsage = (fromAddr, toAddr, sentBytes, sessionDuration, amount
           })
         } else if (sentBytes >= LIMIT_100MB) {
           makeTx = true;
+          next()
+        } else {
           next()
         }
       } else if (parseInt(_usage['sent_bytes']) + sentBytes < LIMIT_100MB) {
@@ -347,7 +349,7 @@ export const addVpnUsage = (fromAddr, toAddr, sentBytes, sessionDuration, amount
         sessionDuration = parseInt(_usage['session_duration']) + sessionDuration;
         amount = int(_usage['amount']) + amount;
         make_tx = true;
-        global.db.usage.findOneAndDelete({
+        global.db.collection('usage').findOneAndDelete({
           'from_addr': fromAddr,
           'to_addr': toAddr
         }, (err, resp) => {
@@ -357,7 +359,7 @@ export const addVpnUsage = (fromAddr, toAddr, sentBytes, sessionDuration, amount
     }, (next) => {
       if (makeTx) {
         getValidNonce(COINBASE_ADDRESS, 'rinkeby', (nonce) => {
-          VpnManager.addVpnUsage(fromAddr, toAddr, sentBytes, sessionDuration, amount, timeStamp, nonce,
+          VpnManager.addVpnUsage(fromAddr, toAddr, sentBytes, sessionDuration, amount, timeStamp, sessionId, nonce,
             (err, txHash) => {
               next(err, txHash)
             })
