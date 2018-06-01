@@ -308,7 +308,7 @@ export const updateConnections = (req, res) => {
         }, null)
       }
     }, (next) => {
-      let endTime = parseInt(Date.now() / 1000);
+      let endTime = Date.now() / 1000;
       let endedConnections = [];
       var sesName = {};
       sesName[cond] = sessionNames;

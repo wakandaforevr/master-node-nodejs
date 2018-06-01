@@ -34,8 +34,8 @@ ETHManager.prototype.createAccount = function (password, cb) {
     }
     cb(null, accountDetails)
   } catch (error) {
-    cb({ 'code': 101, 'error': error }, null);
-  }
+    if (err) cb({ 'code': 101, 'error': err }, null);
+    else cb(null, txHash);  }
 }
 
 ETHManager.prototype.getPrivateKey = function (keystoreData, password, cb) {
@@ -53,26 +53,27 @@ ETHManager.prototype.getAddress = function (privateKey, cb) {
 
     cb(null, address);
   } catch (error) {
-    cb({ 'code': 103, 'error': error }, null);
-  }
+    if (err) cb({ 'code': 103, 'error': err }, null);
+    else cb(null, txHash);  }
 }
 
 ETHManager.prototype.getBalance = function (accountAddr, cb) {
   this.web3.eth.getBalance(accountAddr, (err, balance) => {
-    cb({ 'code': 104, 'error': err }, balance);
+    if (err) cb({ 'code': 104, 'error': err }, null);
+    else cb(null, txHash);
   })
 }
 
 ETHManager.prototype.getTransactionCount = function (accountAddr, cb) {
   this.web3.eth.getTransactionCount(accountAddr, 'pending', (err, txCount) => {
-    cb({ 'code': 105, 'error': error }, txCount);
+    if (err) cb({ 'code': 105, 'error': err }, null);
+    else cb(null, txHash);
   })
 }
 
 ETHManager.prototype.sendRawTransaction = function (txData, cb) {
   txData = txData.toString();
   this.web3.eth.sendRawTransaction(txData, (err, txHash) => {
-    console.log('error', err);
     if (err) cb({ 'code': 106, 'error': err }, null);
     else cb(null, txHash);
   })

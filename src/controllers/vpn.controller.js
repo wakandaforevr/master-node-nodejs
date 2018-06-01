@@ -14,6 +14,10 @@ import { SENT_BALANCE, VPNSERVICE_ADDRESS, DECIMALS } from '../utils/config';
 * @apiSuccess {Object[]} list Details of all VPN servers.
 */
 
+const calculateAmount = (usedBytes, pricePerGB) => {
+  return (usedBytes / (1024 * 1024 * 1024)) * pricePerGB;
+}
+
 const getNodeList = (vpnType, cb) => {
   global.db.collection('nodes').find({
     'vpn.status': 'up',
@@ -104,7 +108,7 @@ export const getSocksList = (req, res) => {
 
 export const getCurrentVpnUsage = (req, res) => {
   let accountAddr = req.body['account_addr']
-  accountAddr = accountAddr.toLowerCase
+  accountAddr = accountAddr.toLowerCase();
   let sessionName = req.body['session_name']
 
   global.db.collection('connections').findOne({
@@ -114,8 +118,17 @@ export const getCurrentVpnUsage = (req, res) => {
       _id: 0,
       server_usage: 1
     }, (err, result) => {
-      if (!result) res.send({})
-      else res.send(result.server_usage)
+      if (!result) res.send({
+        success: true,
+        usage: {
+          down: 0,
+          up: 0
+        }
+      })
+      else res.send({
+        success: true,
+        usage: result.server_usage
+      })
     })
 
 }
@@ -419,13 +432,13 @@ export const updateConnection = (req, res) => {
                         'vpn_addr': connection['vpn_addr'],
                         'session_name': connection['session_name'],
                         'end_time': endTime
-                      }, (err, endedCons) => {
-                        endedCons = endedConnections
+                      }).toArray((err, endedCons) => {
+                        endedConnections = endedCons
                         async.eachSeries(endedConnections, (connection, iterate) => {
                           let toAddr = connection['client_addr'].toLowerCase()
                           let sentBytes = parseInt(connection['client_usage']['down'])
                           let sessionDuration = parseInt(connection['end_time']) - parseInt(connection['start_time'])
-                          let amount = parseInt(amount)
+                          let amount = parseInt(calculateAmount(sentBytes, node['price_per_gb']) * DECIMALS);
                           let timeStamp = parseInt(Date.now() / 1000)
 
                           EthHelper.addVpnUsage(accountAddr, toAddr, sentBytes, sessionDuration, amount, timeStamp, (err, txHash) => {
