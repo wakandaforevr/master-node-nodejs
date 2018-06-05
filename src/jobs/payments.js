@@ -6,8 +6,8 @@ var dbo = require('../db/db')
 import * as ETHHelper from '../helpers/eth';
 
 export const payments = (message) => {
-  var hour = 16;
-  var minute = 26;
+  var hour = 20;
+  var minute = 40;
   var db = null;
   var paidCount = 0;
   var unPaidCount = 0;
@@ -45,28 +45,30 @@ export const payments = (message) => {
         }, (result, next) => {
           async.eachSeries(result, (addr, iterate) => {
             if (addr['_id']) {
-              ETHHelper.getVpnUsage(addr['id'], (err, usage) => {
+              console.log('id', addr['_id'])
+              ETHHelper.getVpnUsage(addr['_id'], (err, usage) => {
+                console.log('usage', usage)
                 if (!err) {
                   if (usage) {
                     var sessions = usage['sessions'];
+                    console.log('sessions', sessions)
                     sessions.map((session, index) => {
-                      if (session['timestamp'] >= timestamp - 24 * 60 * 60) {
-                        if (session['is_payed']) {
-                          paidCount += parseInt(session['amount'])
+                      console.log('sessions', session, index)
+                      if (session['timestamp'] ) {
+                        if (session['is_paid']) {
+                          paidCount += parseFloat(session['amount'])
                         } else {
-                          unPaidCount += parseInt(session['amount'])
+                          unPaidCount += parseFloat(session['amount'])
                         }
                       };
-                      if (index == sessions.length - 1)
-                        next()
                     })
-
                   } else {
                     next()
                   }
                 }
               })
             }
+            iterate()
           }, () => {
             db.collection('payments').update({
               'timestamp': timestamp
@@ -78,6 +80,7 @@ export const payments = (message) => {
               }, {
                 'upsert': true
               })
+            next()
           })
         }
       ], (err, resp) => {
