@@ -9,6 +9,8 @@ import NodeRoutes from './node.routes';
 import ClientRoutes from './client.routes';
 import StatsRoutes from './stats.routes';
 import TokenRoutes from './token.routes';
+import db from '../db/db'
+import { app } from '../app'
 
 import * as DevController from '../dev/free'
 import * as ErrorController from '../controllers/error.controller'
@@ -22,6 +24,8 @@ const routes = new Router();
 
 const isDev = process.env.NODE_ENV === 'development';
 const isTest = process.env.NODE_ENV === 'test';
+
+app();
 
 routes.get('/', (req, res) => {
   res.status = 200
