@@ -97,8 +97,9 @@ ETHManager.prototype.transferAmount = function (fromAddr, toAddr, amount, privat
   })
 }
 
-ETHManager.prototype.gettransactionreceipt = function (txHash, cb) {
+ETHManager.prototype.getTransactionReceipt = function (txHash, cb) {
   this.web3.eth.getTransactionReceipt(txHash, (err, receipt) => {
+    console.log('tx hashes on eth.js', err, receipt)
     if (err) cb({ 'code': 108, 'error': err }, null);
     else cb(null, receipt);
   })

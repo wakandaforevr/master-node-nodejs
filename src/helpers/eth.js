@@ -87,6 +87,32 @@ export const getBalances = (accountAddr, cb) => {
   }
 }
 
+export const getTxReceipt = (txHash, net, cb) => {
+  if (net === 'main') {
+    mainnet.getTransactionReceipt(txHash, (err, receipt) => {
+      cb(err, receipt)
+    })
+  }
+  else if (net === 'rinkeby') {
+    mainnet.getTransactionReceipt(txHash, (err, receipt) => {
+      cb(err, receipt)
+    })
+  }
+}
+
+export const getTx = (txHash, net, cb) => {
+  if (net === 'main') {
+    mainnet.getTransaction(txHash, (err, receipt) => {
+      cb(err, receipt)
+    })
+  }
+  else if (net === 'rinkeby') {
+    mainnet.getTransaction(txHash, (err, receipt) => {
+      cb(err, receipt)
+    })
+  }
+}
+
 export const transferSents = (fromAddr, toAddr, amount, privateKey, net, cb) => {
   if (net == 'main') {
     SentinelMain.transferAmount(fromAddr, toAddr, amount, privateKey, (err, txHash) => {
@@ -134,8 +160,8 @@ export const free = (toAddr, eths, sents, cb) => {
   });
 }
 
-export const getaccountaddress = (privateKey, cb) => {
-  mainnet.getaddress(privateKey,
+export const getAccountAddress = (privateKey, cb) => {
+  mainnet.getAddress(privateKey,
     (err, address) => {
       let accountAddress = address.substr(2)
       cb(null, accountAddress)

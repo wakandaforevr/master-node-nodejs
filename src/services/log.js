@@ -7,7 +7,7 @@ import PrettyError from 'pretty-error';
 import HTTPStatus from 'http-status';
 
 import constants from '../config/constants';
-import APIError, { RequiredError } from './error';
+// import APIError, { RequiredError } from './error';
 
 const isProd = process.env.NODE_ENV === 'production';
 const isDev = process.env.NODE_ENV === 'development';
@@ -16,11 +16,10 @@ const isDev = process.env.NODE_ENV === 'development';
 // eslint-disable-next-line no-unused-vars
 export default function logErrorService(err, req, res, next) {
   if (!err) {
-    return new APIError(
-      'Error with the server!',
-      HTTPStatus.INTERNAL_SERVER_ERROR,
-      true,
-    );
+    return {
+      message:'Error with the server!',
+      error:HTTPStatus.INTERNAL_SERVER_ERROR,
+    }
   }
 
   if (isProd) {

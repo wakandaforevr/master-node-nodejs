@@ -11,7 +11,6 @@ const dbs = function (cb) {
 global.db = null;
 
 dbs(function (err, dbo) {
-  console.log('got the db')
   global.db = dbo.db('sentinel')
 })
 

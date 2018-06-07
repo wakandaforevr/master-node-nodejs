@@ -15,7 +15,7 @@ import { app } from '../app'
 import * as DevController from '../dev/free'
 import * as ErrorController from '../controllers/error.controller'
 
-import APIError from '../services/error';
+// import APIError from '../services/error';
 
 // Middlewares
 import logErrorService from '../services/log';
@@ -48,9 +48,11 @@ routes.use('/tokens', TokenRoutes);
 routes.post('/logs/error', ErrorController.logTheError);
 routes.post('/dev/free', DevController.getFreeAmount);
 
-routes.all('*', (req, res, next) =>
-  next(new APIError('Not Found!', HTTPStatus.NOT_FOUND, true))
-);
+routes.all('*', (req, res, next) =>{
+  console.log('404 api not found')
+  next()
+  // next(new APIError('Not Found!', HTTPStatus.NOT_FOUND, true))
+});
 
 routes.use(logErrorService);
 

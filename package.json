@@ -125,6 +125,7 @@
     "jsonwebtoken": "^8.0.0",
     "keythereum": "^1.0.2",
     "lodash": "^4.17.10",
+    "ltrim": "^1.0.0",
     "md5": "^2.2.1",
     "method-override": "^2.3.8",
     "mongodb": "^3.0.3",

@@ -3,6 +3,7 @@ let eth = require('./eth/eth');
 import { stats } from './jobs/statistics';
 import { alive } from './jobs/alive';
 import { payments } from './jobs/payments';
+import { swaps } from './jobs/swaps';
 
 // var statistics = cp.fork('./src/jobs/statistics.js');
 // var alive = cp.fork('./src/jobs/alive.js');
@@ -14,4 +15,5 @@ export const app = () => {
   alive({ message: 'start', maxSecs: 60 })
   // alive.send({ message: 'start', maxSecs: 60 })
   payments('start');
+  swaps({ message: 'start' })
 }
