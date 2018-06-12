@@ -297,6 +297,8 @@ export const payVpnSession = (fromAddr, amount, sessionId, net, txData, paymentT
               return cb(errors, txHashes)
             }
           })
+        } else {
+          return cb(errors, txHashes)
         }
       })
     } else {

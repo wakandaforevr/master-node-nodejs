@@ -28,8 +28,8 @@ SentinelManager.prototype.getBalance = function (accountAddr, cb) {
 SentinelManager.prototype.transferAmount = function (fromAddr, toAddr, amount, privateKey, nonce, cb) {
   let rawTx = {
     nonce: nonce,
-    gasPrice: rinkeby.web3.toHex(rinkeby.web3.gasPrice),
-    startGas: rinkeby.web3.toHex(1000000),
+    gasPrice: rinkeby.web3.toHex(rinkeby.web3.eth.gasPrice),
+    gasLimit: rinkeby.web3.toHex(500000),
     to: this.address,
     value: '0x0',
     data: this.contract.transfer.getData(toAddr, amount)

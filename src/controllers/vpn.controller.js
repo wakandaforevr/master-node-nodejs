@@ -5,7 +5,7 @@ import uuid from 'uuid'
 import * as VpnManager from '../eth/vpn_contract'
 import * as EthHelper from '../helpers/eth';
 import { dbs } from '../db/db';
-import { SENT_BALANCE, VPNSERVICE_ADDRESS, DECIMALS } from '../utils/config';
+import { SENT_BALANCE, VPNSERVICE_ADDRESS, DECIMALS, COINBASE_ADDRESS } from '../utils/config';
 
 /**
 * @api {get} /client/vpn/list Get all unoccupied VPN servers list.
@@ -147,9 +147,9 @@ export const getCurrentVpnUsage = (req, res) => {
 
 export const getVpnCredentials = (req, res) => {
 
+
   let accountAddr = req.body['account_addr'];
   let vpnAddr = req.body['vpn_addr'];
-  let vpnAddrLen = vpnAddr.length;
 
   async.waterfall([
     (next) => {
@@ -159,7 +159,7 @@ export const getVpnCredentials = (req, res) => {
           else next(null, balances);
         })
     }, (balances, next) => {
-      if (balances.test.sents >= 100) {
+      if (balances.test.sents >= 100 * DECIMALS) {
         EthHelper.getDueAmount(accountAddr, (err, dueAmount) => {
           if (err) {
             next({
@@ -167,8 +167,8 @@ export const getVpnCredentials = (req, res) => {
               'error': err,
               'message': 'Error occurred while checking the due amount.'
             }, null)
-          } else if (dueAmount == 0) {
-            if (vpnAddrLen > 0) {
+          } else if (dueAmount <= 0) {
+            if (vpnAddr) {
               global.db.collection('nodes').findOne(
                 { 'account_addr': vpnAddr, 'vpn.status': 'up' },
                 { '_id': 0, 'token': 0 },
@@ -245,8 +245,8 @@ export const getVpnCredentials = (req, res) => {
         } else {
           next({
             'success': false,
-            'account_addr': vpnAddr,
-            'message': 'Initial payment status is empty.'
+            'account_addr': COINBASE_ADDRESS,
+            'message': 'Initial payment status is not done.'
           }, null)
         }
       })

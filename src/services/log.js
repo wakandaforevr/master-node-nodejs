@@ -7,13 +7,10 @@ import PrettyError from 'pretty-error';
 import HTTPStatus from 'http-status';
 
 import constants from '../config/constants';
-// import APIError, { RequiredError } from './error';
 
 const isProd = process.env.NODE_ENV === 'production';
 const isDev = process.env.NODE_ENV === 'development';
 
-
-// eslint-disable-next-line no-unused-vars
 export default function logErrorService(err, req, res, next) {
   if (!err) {
     return {
@@ -30,12 +27,6 @@ export default function logErrorService(err, req, res, next) {
   if (isDev) {
     const raven = new Raven.Client(constants.RAVEN_ID);
     raven.captureException(err);
-    /* const pe = new PrettyError();
-    pe.skipNodeFiles();
-    pe.skipPackage('express');
-
-    // eslint-disable-next-line no-console
-    console.log(pe.render(err)); */
   }
 
   const error = {

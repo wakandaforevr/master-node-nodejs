@@ -1,7 +1,6 @@
 var schedule = require('node-schedule')
 var async = require('async')
 var dbo = require('../db/db')
-// var ETHHelper = require('../helpers/eth')
 
 import * as ETHHelper from '../helpers/eth';
 
@@ -11,8 +10,6 @@ export const payments = (message) => {
   var db = null;
   var paidCount = 0;
   var unPaidCount = 0;
-
-  console.log('message in payments js is ', message)
 
   if (message === 'start') {
     var j = schedule.scheduleJob('*/45 * * * * *', () => {
@@ -45,15 +42,11 @@ export const payments = (message) => {
         }, (result, next) => {
           async.eachSeries(result, (addr, iterate) => {
             if (addr['_id']) {
-              console.log('id', addr['_id'])
               ETHHelper.getVpnUsage(addr['_id'], (err, usage) => {
-                console.log('usage', usage)
                 if (!err) {
                   if (usage) {
                     var sessions = usage['sessions'];
-                    console.log('sessions', sessions)
                     sessions.map((session, index) => {
-                      console.log('sessions', session, index)
                       if (session['timestamp'] ) {
                         if (session['is_paid']) {
                           paidCount += parseFloat(session['amount'])

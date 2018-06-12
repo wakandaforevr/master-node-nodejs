@@ -177,12 +177,14 @@ module.exports.VPNSERVICE_ABI = [
 
 module.exports.VPNSERVICE_ADDRESS = '0x86c592a4Ab2De10D8F1Ad3AD91e40BD676F559f2'.toLowerCase()
 module.exports.VPNSERVICE_NAME = 'Vpn_service'
-module.exports.COINBASE_ADDRESS = '0x16f177624d286BE280AF36800365310f755b4dB6' //'0x47BD80a152D0d77664D65De5789dF575C9CABBdb'.toLowerCase() //'0xA3F1592D8a09a91a7238f608620fFDe7C4B26029'.toLowerCase()
-module.exports.COINBASE_PRIVATE_KEY = '0dc93c2f0dff4836c9652adfdd6e6e707cd64b7a891ceb5a570af70185e5ee97' //'81c81be18ae01e88358a48f7a5c661d567d59588490cd7cd39a89f25e37ceccb'
+module.exports.COINBASE_ADDRESS = process.env.COINBASE_ADDRESS  
+//'0x47BD80a152D0d77664D65De5789dF575C9CABBdb'.toLowerCase()
+module.exports.COINBASE_PRIVATE_KEY = process.env.COINBASE_PRIVATE_KEY 
+//81c81be18ae01e88358a48f7a5c661d567d59588490cd7cd39a89f25e37ceccb
 module.exports.DECIMALS = 1.0 * Math.pow(10, 8)
-module.exports.CENTRAL_WALLET = ''.toString()
-module.exports.CENTRAL_WALLET_PRIVATE_KEY = ''
+module.exports.CENTRAL_WALLET = process.env.CENTRAL_WALLET
+module.exports.CENTRAL_WALLET_PRIVATE_KEY = process.env.CENTRAL_WALLET_PRIVATE_KEY
 module.exports.MAX_TX_TRY = 60
 module.exports.LIMIT_10MB = 10 * 1024 * 1024
 module.exports.LIMIT_100MB = 100 * 1024 * 1024
-module.exports.SESSIONS_SALT = 'ssWV2M1d9FqwOhyC'.toString('utf8')
+module.exports.SESSIONS_SALT = process.env.SESSIONS_SALT

@@ -23,7 +23,7 @@ function ETHManager(provider = null, rpcURL = null) {
 
 ETHManager.prototype.createAccount = function (password, cb) {
   try {
-    const privateKey = hdkey.fromMasterSeed('random')._hdkey._privateKey
+    const privateKey = crypto.randomBytes(32);
     const wallet = Wallet.fromPrivateKey(privateKey)
     const keystore = wallet.toV3String(password)
     const keystoreData = JSON.parse(keystore);
@@ -35,7 +35,8 @@ ETHManager.prototype.createAccount = function (password, cb) {
     cb(null, accountDetails)
   } catch (error) {
     if (err) cb({ 'code': 101, 'error': err }, null);
-    else cb(null, txHash);  }
+    else cb(null, txHash);
+  }
 }
 
 ETHManager.prototype.getPrivateKey = function (keystoreData, password, cb) {
@@ -54,20 +55,21 @@ ETHManager.prototype.getAddress = function (privateKey, cb) {
     cb(null, address);
   } catch (error) {
     if (err) cb({ 'code': 103, 'error': err }, null);
-    else cb(null, txHash);  }
+    else cb(null, txHash);
+  }
 }
 
 ETHManager.prototype.getBalance = function (accountAddr, cb) {
   this.web3.eth.getBalance(accountAddr, (err, balance) => {
     if (err) cb({ 'code': 104, 'error': err }, null);
-    else cb(null, txHash);
+    else cb(null, balance);
   })
 }
 
 ETHManager.prototype.getTransactionCount = function (accountAddr, cb) {
   this.web3.eth.getTransactionCount(accountAddr, 'pending', (err, txCount) => {
     if (err) cb({ 'code': 105, 'error': err }, null);
-    else cb(null, txHash);
+    else cb(null, txCount);
   })
 }
 
@@ -83,7 +85,7 @@ ETHManager.prototype.transferAmount = function (fromAddr, toAddr, amount, privat
   let rawTx = {
     nonce: nonce,
     gasPrice: this.web3.toHex(this.web3.eth.gasPrice),
-    startGas: this.web3.toHex(1000000),
+    gasLimit: this.web3.toHex(500000),
     to: toAddr,
     value: amount,
     data: ''

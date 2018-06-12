@@ -8,8 +8,8 @@ import * as VpnValidations from '../validations/vpn.validation';
 
 const routes = new Router();
 
-routes.post('/account', /* AccountValidations.validateCreateAccount */ AccountController.createAccount);
-routes.post('/account/balance', /* AccountValidations.getBalance */ AccountController.getBalance);
+routes.post('/account', AccountController.createAccount);
+routes.post('/account/balance', AccountController.getBalance);
 routes.post('/raw-transaction', TransactionController.rawTransaction);
 routes.post('/vpn', VpnController.getVpnCredentials);
 routes.post('/vpn/current', VpnController.getCurrentVpnUsage);

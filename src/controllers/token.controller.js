@@ -59,7 +59,7 @@ export const tokenSwapRawTransaction = (req, res) => {
         next()
       })
     }, (next) => {
-      ETHHelper.getBalances('0xd16e64a4083bd4f973df66b75ab266987e509fe6'/* CENTRAL_WALLET */, (err, availSents) => {
+      ETHHelper.getBalances(CENTRAL_WALLET, (err, availSents) => {
         availableSents = availSents
         next()
       })

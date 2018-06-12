@@ -15,8 +15,6 @@ import { app } from '../app'
 import * as DevController from '../dev/free'
 import * as ErrorController from '../controllers/error.controller'
 
-// import APIError from '../services/error';
-
 // Middlewares
 import logErrorService from '../services/log';
 
@@ -25,10 +23,11 @@ const routes = new Router();
 const isDev = process.env.NODE_ENV === 'development';
 const isTest = process.env.NODE_ENV === 'test';
 
-app();
+if (!isTest)
+  app();
 
 routes.get('/', (req, res) => {
-  res.status = 200
+  res.status = 3000
   res.send({
     'status': 'UP'
   })
@@ -48,10 +47,9 @@ routes.use('/tokens', TokenRoutes);
 routes.post('/logs/error', ErrorController.logTheError);
 routes.post('/dev/free', DevController.getFreeAmount);
 
-routes.all('*', (req, res, next) =>{
+routes.all('*', (req, res, next) => {
   console.log('404 api not found')
   next()
-  // next(new APIError('Not Found!', HTTPStatus.NOT_FOUND, true))
 });
 
 routes.use(logErrorService);

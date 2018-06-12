@@ -11,7 +11,7 @@ const dbs = function (cb) {
 global.db = null;
 
 dbs(function (err, dbo) {
-  global.db = dbo.db('sentinel')
+  global.db = dbo.db('sentinel1')
 })
 
 exports.dbs = dbs;

@@ -10,11 +10,12 @@ import {
 
 let VPN = rinkeby.web3.eth.contract(VPNSERVICE_ABI).at(VPNSERVICE_ADDRESS);
 
-export const payVpnSession = (accountAddr, amount, sessionId, nonce, cb) => {
+export const payVpnSession = async (accountAddr, amount, sessionId, nonce, cb) => {
+
   let rawTx = {
-    nonce: nonce,/* rinkeby.web3.toHex(500000), */
-    gasPrice: rinkeby.web3.toHex(rinkeby.web3.gasPrice),
-    startGas: rinkeby.web3.toHex(1000000),
+    nonce: nonce,
+    gasPrice: rinkeby.web3.toHex(rinkeby.web3.eth.gasPrice),
+    gasLimit: rinkeby.web3.toHex(500000),
     to: VPNSERVICE_ADDRESS,
     value: '0x0',
     data: VPN.payVpnSession.getData(accountAddr, amount, sessionId)
@@ -31,9 +32,9 @@ export const payVpnSession = (accountAddr, amount, sessionId, nonce, cb) => {
 
 export const setInitialPayment = (accountAddr, nonce, isPayed = true) => {
   let rawTx = {
-    nonce: nonce, /* rinkeby.web3.toHex(500000) */
-    gasPrice: rinkeby.web3.toHex(rinkeby.web3.gasPrice),
-    startGas: rinkeby.web3.toHex(1000000),
+    nonce: nonce,
+    gasPrice: rinkeby.web3.toHex(rinkeby.web3.eth.gasPrice),
+    gasLimit: rinkeby.web3.toHex(500000),
     to: VPNSERVICE_ADDRESS,
     value: '0x0',
     data: VPN.setInitialPaymentOf.getData(accountAddr, isPayed)
@@ -82,8 +83,8 @@ export const addVpnUsage = (fromAddr, toAddr, sentBytes, sessionDuration, amount
   try {
     let rawTx = {
       nonce: nonce,
-      gasPrice: rinkeby.web3.toHex(rinkeby.web3.gasPrice),
-      startGas: rinkeby.web3.toHex(1000000),
+      gasPrice: rinkeby.web3.toHex(rinkeby.web3.eth.gasPrice),
+      gasLimit: rinkeby.web3.toHex(500000),
       to: VPNSERVICE_ADDRESS,
       value: '0x0',
       data: VPN.addVpnUsage.getData(fromAddr, toAddr, sentBytes, sessionDuration, amount, timeStamp, sessionId)
