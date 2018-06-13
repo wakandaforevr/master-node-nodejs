@@ -15,6 +15,8 @@ import { app } from '../app'
 import * as DevController from '../dev/free'
 import * as ErrorController from '../controllers/error.controller'
 
+import * as config from '../utils/config'
+
 // Middlewares
 import logErrorService from '../services/log';
 
@@ -27,7 +29,7 @@ if (!isTest)
   app();
 
 routes.get('/', (req, res) => {
-  res.status = 3000
+  res.status = 200
   res.send({
     'status': 'UP'
   })

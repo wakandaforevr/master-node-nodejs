@@ -32,7 +32,6 @@ describe('Route creating account', () => {
         .post(accountRoute)
         .send(correctDetails)
         .end((err, res) => {
-          console.log('keystore', res.body)
           res.should.have.status(200);
           res.body.should.be.a('object');
           done();
@@ -55,7 +54,6 @@ describe('Route for checking balance', () => {
           done();
         });
     }).timeout(5000);
-
   });
 });
 

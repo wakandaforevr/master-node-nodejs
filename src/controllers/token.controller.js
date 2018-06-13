@@ -49,22 +49,29 @@ export const tokenSwapRawTransaction = (req, res) => {
   let toAddr = req.query['to_addr'];
   let value = parseInt(req.query['value']);
   let token = tokens.getToken(toAddr);
-  let requestedSents = null;
-  let availableSents = null;
+  let requestedSents = 0;
+  let availableSents = 1;
+
+  console.log('req.body in token swaps', req.body, txData, toAddr, '--------------------------------------------------------------------------------------------');
 
   async.waterfall([
     (next) => {
-      tokens.calculateSents(token, value, (reqSents) => {
+      /* tokens.calculateSents(token, value, (reqSents) => {
+        console.log('requested sents', reqSents)
         requestedSents = reqSents;
         next()
-      })
+      }) */
+      next()
     }, (next) => {
-      ETHHelper.getBalances(CENTRAL_WALLET, (err, availSents) => {
+      /* ETHHelper.getBalances(CENTRAL_WALLET, (err, availSents) => {
+        console.log('requested sents', availSents, err, '----------------------------------------------------------------------------')
         availableSents = availSents
         next()
-      })
+      }) */
+      next()
     }, (next) => {
-      if (availableSents['main']['sents'] >= (requestedSents * DECIMALS)) {
+      // if (availableSents['main']['sents'] >= (requestedSents * DECIMALS)) {
+      if (availableSents >= requestedSents) {
         ETHHelper.rawTransaction(txData, 'main', (err, txHash) => {
           if (!err) {
             global.db.collection('token_swaps').insertOne({

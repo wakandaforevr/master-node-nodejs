@@ -94,7 +94,7 @@ export const getTxReceipt = (txHash, net, cb) => {
     })
   }
   else if (net === 'rinkeby') {
-    mainnet.getTransactionReceipt(txHash, (err, receipt) => {
+    rinkeby.getTransactionReceipt(txHash, (err, receipt) => {
       cb(err, receipt)
     })
   }
@@ -107,22 +107,24 @@ export const getTx = (txHash, net, cb) => {
     })
   }
   else if (net === 'rinkeby') {
-    mainnet.getTransaction(txHash, (err, receipt) => {
+    rinkeby.getTransaction(txHash, (err, receipt) => {
       cb(err, receipt)
     })
   }
 }
 
 export const transferSents = (fromAddr, toAddr, amount, privateKey, net, cb) => {
-  if (net == 'main') {
-    SentinelMain.transferAmount(fromAddr, toAddr, amount, privateKey, (err, txHash) => {
-      cb(err, txHash)
-    })
-  } else if (net == 'rinkeby') {
-    SentinelRinkeby.transferAmount(fromAddr, toAddr, amount, privateKey, (err, txHash) => {
-      cb(err, txHash)
-    })
-  }
+  getValidNonce(fromAddr, net, (nonce = null) => {
+    if (net == 'main') {
+      SentinelMain.transferAmount(toAddr, amount, privateKey, nonce, (err, txHash) => {
+        cb(err, txHash)
+      })
+    } else if (net == 'rinkeby') {
+      SentinelRinkeby.transferAmount(toAddr, amount, privateKey, nonce, (err, txHash) => {
+        cb(err, txHash)
+      })
+    }
+  })
 }
 
 export const transferEths = (fromAddr, toAddr, amount, privateKey, net, cb) => {

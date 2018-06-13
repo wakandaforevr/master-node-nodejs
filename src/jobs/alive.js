@@ -13,7 +13,7 @@ export const alive = function (data) {
       async.waterfall([
         (next) => {
           dbo.dbs((err, dbo) => {
-            db = dbo.db('sentinel');
+            db = dbo.db('sentinel1');
             next()
           })
         }, (next) => {

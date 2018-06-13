@@ -42,7 +42,6 @@ Tokens.prototype.getUsdPrice = function (token, cb) {
       cb(usdPrice);
     })
   } catch (error) {
-    console.log(error)
     cb(usdPrice);
   }
 }
@@ -76,6 +75,7 @@ Tokens.prototype.calculateSents = function (token, value, cb) {
       next();
     }
   ], (err, resp) => {
+    console.log('sents', sents)
     return cb(sents)
   })
 }

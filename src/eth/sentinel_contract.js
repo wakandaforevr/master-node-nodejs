@@ -25,17 +25,17 @@ SentinelManager.prototype.getBalance = function (accountAddr, cb) {
     })
 }
 
-SentinelManager.prototype.transferAmount = function (fromAddr, toAddr, amount, privateKey, nonce, cb) {
+SentinelManager.prototype.transferAmount = function (toAddr, amount, privateKey, nonce, cb) {
   let rawTx = {
     nonce: nonce,
-    gasPrice: rinkeby.web3.toHex(rinkeby.web3.eth.gasPrice),
+    gasPrice: rinkeby.web3.toHex(this.net.web3.eth.gasPrice),
     gasLimit: rinkeby.web3.toHex(500000),
     to: this.address,
     value: '0x0',
     data: this.contract.transfer.getData(toAddr, amount)
   }
   let tx = new Tx(rawTx);
-  tx.sign(new Buffer(privateKey));
+  tx.sign(Buffer.from(privateKey, 'hex'));
   let serializedTx = tx.serialize();
   this.net.web3.eth.sendRawTransaction('0x' + serializedTx.toString('hex'), (err, txHash) => {
     cb(err, txHash)

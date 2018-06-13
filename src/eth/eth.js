@@ -101,7 +101,6 @@ ETHManager.prototype.transferAmount = function (fromAddr, toAddr, amount, privat
 
 ETHManager.prototype.getTransactionReceipt = function (txHash, cb) {
   this.web3.eth.getTransactionReceipt(txHash, (err, receipt) => {
-    console.log('tx hashes on eth.js', err, receipt)
     if (err) cb({ 'code': 108, 'error': err }, null);
     else cb(null, receipt);
   })
@@ -118,8 +117,8 @@ if (process.env.SENT_ENV === 'PROD') {
   module.exports.ETHManager = new ETHManager('rpc', 'https://mainnet.infura.io/aiAxnxbpJ4aG0zed1aMy')
   module.exports.mainnet = new ETHManager('rpc', 'https://mainnet.infura.io/aiAxnxbpJ4aG0zed1aMy')
 } else {
-  module.exports.ETHManager = new ETHManager('rpc', 'https://ropsten.infura.io/aiAxnxbpJ4aG0zed1aMy')
-  module.exports.mainnet = new ETHManager('rpc', 'https://ropsten.infura.io/aiAxnxbpJ4aG0zed1aMy')
+  module.exports.ETHManager = new ETHManager('rpc', 'https://mainnet.infura.io/aiAxnxbpJ4aG0zed1aMy')
+  module.exports.mainnet = new ETHManager('rpc', 'https://mainnet.infura.io/aiAxnxbpJ4aG0zed1aMy')
 }
 
 module.exports.rinkeby = new ETHManager('rpc', 'https://rinkeby.infura.io/aiAxnxbpJ4aG0zed1aMy')

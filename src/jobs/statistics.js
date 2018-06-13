@@ -17,7 +17,7 @@ export const stats = (message) => {
         (next) => {
           if (currentTime.getHours() == hours && currentTime.getMinutes() == minutes) {
             dbo.dbs((err, dbo) => {
-              db = dbo.db('sentinel');
+              db = dbo.db('sentinel1');
               next()
             })
           } else {

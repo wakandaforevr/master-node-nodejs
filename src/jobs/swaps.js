@@ -12,12 +12,12 @@ var db = null;
 
 const makeTx = (txHash0, status, message, txHash1 = null, cb) => {
   db.collection('token_swaps').findOneAndUpdate({
-    'tx_hash_0': txHash0
+    'txHash_0': txHash0
   }, {
       '$set': {
         'status': status,
         'message': message,
-        'tx_hash_1': txHash1,
+        'txHash_1': txHash1,
         'time_1': Date.now() / 1000
       }
     }, (err, resp) => {
@@ -26,10 +26,11 @@ const makeTx = (txHash0, status, message, txHash1 = null, cb) => {
     })
 }
 
-const transfer = (toAddr, fromAddr, token, txHash0, cb) => {
+const transfer = (fromAddr, toAddr, token, txHash0, value, cb) => {
   if (fromAddr == CENTRAL_WALLET) {
     tokens.calculateSents(token, value, (sents) => {
       EthHelper.transferSents(CENTRAL_WALLET, toAddr, sents, CENTRAL_WALLET_PRIVATE_KEY, 'main', (err, txHash1) => {
+        console.log('err, txHash1', err, txHash1)
         if (!err) {
           cb(txHash0, 1, 'Transaction is initiated successfully.', txHash1);
         } else {
@@ -44,7 +45,7 @@ const transfer = (toAddr, fromAddr, token, txHash0, cb) => {
 
 const checkTx = (transactions, cb) => {
   each(transactions, (transaction, iterate) => {
-    var txHash0 = transaction['tx_hash_0']
+    var txHash0 = transaction['txHash_0']
     var receipt = null;
     var tx = null;
     var fromAddr = null;
@@ -56,7 +57,7 @@ const checkTx = (transactions, cb) => {
 
     waterfall([
       (next) => {
-        EthHelper.getTxReceipt('0x60c84647018c20ba15db7ded5d9131caa65f81b2e96eab9e182f46e44f8994d5', 'main', (err, txReceipt) => {
+        EthHelper.getTxReceipt(txHash0, 'main', (err, txReceipt) => {
           if (!err && txReceipt) {
             receipt = txReceipt
             next()
@@ -67,7 +68,7 @@ const checkTx = (transactions, cb) => {
       }, (next) => {
         if (receipt['status'] == 1) {
           EthHelper.getTx(txHash0, 'main', (err, Tx) => {
-            if (!err && tx) {
+            if (!err && Tx) {
               tx = Tx
               next()
             }
@@ -79,7 +80,7 @@ const checkTx = (transactions, cb) => {
         fromAddr = tx['from'].toLowerCase()
         toAddr = tx['to'].toLowerCase()
         txValue = parseInt(tx['value'])
-        txInput = parseInt(tx['input'])
+        txInput = tx['input']
 
         if (txValue == 0 && txInput.length == 138) {
           token = tokens.getToken(toAddr)
@@ -96,12 +97,13 @@ const checkTx = (transactions, cb) => {
             next(txHash0, -1, 'No token found.')
           }
         } else if (txValue > 0 && txInput.length == 2) {
+          token = tokens.getToken(toAddr)
           next()
         } else {
           next(txHash0, -1, 'Not a valid transaction')
         }
       }, (next) => {
-        transfer(toAddr, fromAddr, token, txHash0, (TxHash0, Status, Message, TxHash1 = null) => {
+        transfer(toAddr, fromAddr, token, txHash0, txValue, (TxHash0, Status, Message, TxHash1 = null) => {
           next(TxHash0, Status, Message, TxHash1)
         })
       }
@@ -121,7 +123,7 @@ export const swaps = (data) => {
       waterfall([
         (next) => {
           dbs((err, dbo) => {
-            db = dbo.db('sentinel');
+            db = dbo.db('sentinel1');
             next()
           })
         }, (next) => {
