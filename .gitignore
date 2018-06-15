@@ -6,3 +6,4 @@ coverage
 doc/
 package-lock.json
 txt.log
+data/

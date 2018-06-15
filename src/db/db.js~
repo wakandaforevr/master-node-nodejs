@@ -1,10 +1,10 @@
 var MongoClient = require('mongodb').MongoClient;
-var url = "mongodb://localhost:27017/";
+var url = "mongodb://mongo:27017/";
 
 const dbs = function (cb) {
   MongoClient.connect(url, function (err, dbo) {
-    if (err) throw err;
-    else cb(null, dbo);
+    if (err) cb(err, null);
+    cb(null, dbo);
   });
 }
 
