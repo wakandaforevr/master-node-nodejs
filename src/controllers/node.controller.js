@@ -804,10 +804,7 @@ export const getDailySessionCount = (req, res) => {
     "$sort": {
       "_id": 1
     }
-  }]).toArray((err, result) => {
-    result.forEach((doc) => {
-      dailyCount.push(doc)
-    })
+  }]).toArray((err, dailyCount) => {
     res.send({
       'success': true,
       'stats': dailyCount
@@ -927,10 +924,7 @@ export const getDailyDurationCount = (req, res) => {
     "$sort": {
       "_id": 1
     }
-  }]).toArray((err, result) => {
-    result.map((doc) => {
-      dailyCount.push(doc)
-    })
+  }]).toArray((err, dailyCount) => {
     res.send({
       'success': true,
       'stats': dailyCount
@@ -1017,11 +1011,8 @@ export const getAverageDuration = (req, res) => {
         "$avg": "$Sum"
       }
     }
-  }]).toArray((err, result) => {
+  }]).toArray((err, avgCount) => {
     if (err) res.send(err);
-    result.map((doc) => {
-      avgCount.push(doc)
-    })
     res.send({
       'success': true,
       'stats': avgCount
@@ -1125,5 +1116,98 @@ export const getNodeStatistics = (req, res) => {
         'average': resp
       })
     }
+  })
+}
+
+export const getDailyPaidSentsCount = (req, res) => {
+  global.db.collection('statistics').aggregate([{
+    '$project': {
+      'total': {
+        '$add': [
+          new Date(1970 - 1 - 1), {
+            '$multiply': ['$timestamp', 1000]
+          }
+        ]
+      },
+      'amount': '$paid_count'
+    }
+  }, {
+    '$group': {
+      '_id': {
+        '$dateToString': {
+          'format': '%d/%m/%Y',
+          'date': '$total'
+        }
+      },
+      'sentsCount': {
+        '$sum': '$amount'
+      }
+    }
+  }, {
+    '$sort': {
+      '_id': 1
+    }
+  }]).toArray((err, dailyCount) => {
+    if (err) { res.send({ success: false, message: "error getting daily paid session count" }) }
+    else { res.send({ success: true, stats: dailyCount }) }
+  })
+}
+
+export const getDailyTotalSentsUsed = () => {
+  global.db.collection('statistics').aggregate([{
+    '$project': {
+      'total': {
+        '$add': [
+          new Date(1970 - 1 - 1), {
+            '$multiply': ['$timestamp', 1000]
+          }
+        ]
+      },
+      'amount': {
+        '$add': ['$paid_count', '$unpaid_count']
+      }
+    }
+  }, {
+    '$group': {
+      '_id': {
+        '$dateToString': {
+          'format': '%d/%m/%Y',
+          'date': '$total'
+        }
+      },
+      'sentsCount': {
+        '$sum': '$amount'
+      }
+    }
+  }, {
+    '$sort': {
+      '_id': 1
+    }
+  }]).toArray((err, dailyCount) => {
+    if (err) { res.send({ success: false, message: "error getting daily sents used" }) }
+    else { res.send({ success: true, stats: dailyCount }) }
+  })
+}
+
+export const getAveragePaidSentsCount = () => {
+  global.db.collection('payments').aggregate([{ '$group': { '_id': 0, 'AverageCount': { '$avg': '$paid_count' } } }])
+    .toArray((err, avgCount) => {
+      if (err) { res.send({ success: false, message: "error getting average paid sents count" }) }
+      else { res.send({ success: true, stats: avgCount }) }
+    })
+}
+
+export const getAverageTotalSentsCount = () => {
+  global.db.collection('payments').aggregate([
+    {
+      '$project': {
+        'total': { '$add': ['$paid_count', '$unpaid_count'] }
+      }
+    }, {
+      '$group': { '_id': 0, 'Avg': { '$avg': '$total' } }
+    }
+  ]).toArray((err, avgCount) => {
+    if (err) { res.send({ success: false, message: "error getting average total sents count" }) }
+    else { res.send({ success: true, stats: avgCount }) }
   })
 }
