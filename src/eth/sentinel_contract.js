@@ -10,7 +10,7 @@ import {
 } from '../utils/config'
 import Tx from 'ethereumjs-tx'
 
-let SENT = mainnet.web3.eth.contract(SENTINEL_ABI).at(SENTINEL_ADDRESS);
+// let SENT = mainnet.web3.eth.contract(SENTINEL_ABI).at(SENTINEL_ADDRESS);
 
 function SentinelManager(net, name, address, abi) {
   this.net = net
@@ -19,7 +19,7 @@ function SentinelManager(net, name, address, abi) {
 }
 
 SentinelManager.prototype.getBalance = function (accountAddr, cb) {
-  this.net.web3.eth.getBalance(accountAddr,
+  this.contract.balanceOf(accountAddr,
     (err, balance) => {
       cb(err, balance)
     })

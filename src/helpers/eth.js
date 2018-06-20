@@ -18,7 +18,7 @@ const getEncodedSessionId = async (accountAddr, index, cb) => {
   return cb(sessionId)
 }
 
-const getValidNonce = (accountAddr, net, cb) => {
+export const getValidNonce = (accountAddr, net, cb) => {
   let key = accountAddr + '_' + net;
   let previousNonce = redisClient.get(key);
   let error = -1;

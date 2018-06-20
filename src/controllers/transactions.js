@@ -15,13 +15,13 @@ export const rawTransaction = (req, res) => {
 
   EthHelper.rawTransaction(txData, net, (err, txHash) => {
     if (err) {
-      res.send({
+      res.status(400).send({
         'success': false,
         'error': err,
         'message': 'Error occurred while initiating the transaction.'
       })
     } else {
-      res.send({
+      res.status(200).send({
         'success': true,
         'txHash': txHash,
         'message': 'Transaction initiated successfully.'
