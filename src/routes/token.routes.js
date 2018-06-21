@@ -12,6 +12,7 @@ routes.post('/', (req, res) => {
 });
 
 routes.get('/available', TokenController.getAvailableTokens);
+routes.get('/swaps/exchange', TokenController.getExchangeValue)
 routes.get('/sents', TokenController.getSents);
 routes.post('/swaps/raw-transaction', TokenController.tokenSwapRawTransaction);
 

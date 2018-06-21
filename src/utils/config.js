@@ -188,3 +188,13 @@ module.exports.MAX_TX_TRY = 60
 module.exports.LIMIT_10MB = 10 * 1024 * 1024
 module.exports.LIMIT_100MB = 100 * 1024 * 1024
 module.exports.SESSIONS_SALT = process.env.SESSIONS_SALT
+module.exports.FEE_PERCENTAGE = 0.01
+module.exports.ADDRESS = ''.toLowerCase()
+module.exports.PRIVATE_KEY = ''
+module.exports.ETHEREUM_BASED_COINS = ['ETH', 'BNB', 'SENT']
+module.exports.BTC_BASED_COINS = {
+    'PIVX': {
+        'ip': '',
+        'port': 0
+    }
+}

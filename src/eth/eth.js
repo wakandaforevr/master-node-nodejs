@@ -122,3 +122,13 @@ if (process.env.SENT_ENV === 'PROD') {
 }
 
 module.exports.rinkeby = new ETHManager('rpc', 'https://rinkeby.infura.io/aiAxnxbpJ4aG0zed1aMy')
+
+let eth_manager = {
+  'main': new ETHManager('rpc', 'https://rinkeby.infura.io/aiAxnxbpJ4aG0zed1aMy'),
+  'rinkeby': new ETHManager('rpc', 'https://mainnet.infura.io/aiAxnxbpJ4aG0zed1aMy')
+}
+
+module.exports = {
+  Eth_manager: eth_manager
+}
+

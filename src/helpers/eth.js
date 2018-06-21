@@ -3,8 +3,8 @@ import redis from 'redis'
 import sleep from 'sleep'
 import async from 'async'
 
-import { ETHManager, rinkeby, mainnet } from '../eth/eth';
-import { SentinelMain, SentinelRinkeby } from '../eth/sentinel_contract';
+import { ETHManager, rinkeby, mainnet, Eth_manager } from '../eth/eth';
+import { SentinelMain, SentinelRinkeby, ERC20Manager } from '../eth/erc20';
 import { DECIMALS, COINBASE_ADDRESS, COINBASE_PRIVATE_KEY, SESSIONS_SALT, LIMIT_10MB, LIMIT_100MB } from '../utils/config';
 import * as VpnManager from '../eth/vpn_contract';
 
@@ -127,13 +127,21 @@ export const transferSents = (fromAddr, toAddr, amount, privateKey, net, cb) => 
   })
 }
 
+export const transferErc20 = (fromAddr, toAddr, amount, symbol, privateKey, net, cb) => {
+  getValidNonce(fromAddrm, net, (nonce) => {
+    ERC20Manager[net][symbol].transferAmount(toAddr, amount, privateKey, nonce, (err, txHash) => {
+      cb(err, txHash)
+    })
+  })
+}
+
 export const transferEths = (fromAddr, toAddr, amount, privateKey, net, cb) => {
   if (net == 'main') {
-    mainnet.transferAmount(fromAddr, toAddr, amount, privateKey, (err, txHash) => {
+    Eth_manager['main'].transferAmount(fromAddr, toAddr, amount, privateKey, (err, txHash) => {
       cb(err, txHash)
     })
   } else if (net == 'rinkeby') {
-    rinkeby.transferAmount(fromAddr, toAddr, amount, privateKey, (err, txHash) => {
+    Eth_manager['rinkeby'].transferAmount(fromAddr, toAddr, amount, privateKey, (err, txHash) => {
       cb(err, txHash)
     })
   }
@@ -203,6 +211,21 @@ export const getInitialPayment = (accountAddr, cb) => {
     cb(err, isPayed)
   })
 }
+
+export const transfer = (fromAddr, toAddr, amount, symbol, privateKey, net, cb) => {
+  if (symbol == 'ETH') {
+    transferEths(fromAddr, toAddr, amount, privateKey, net,
+      (err, resp) => {
+        cb(err, resp)
+      })
+  } else {
+    transferErc20(fromAddr, toAddr, amount, symbol, privateKey, net,
+      (err, resp) => {
+        cb(err, resp);
+      })
+  }
+}
+
 
 export const transferAmount = (fromAddr, toAddr, amount, unit, keystore, password, privateKey = null, cb) => {
   if (!privateKey) {
@@ -308,6 +331,16 @@ export const payVpnSession = (fromAddr, amount, sessionId, net, txData, paymentT
       return cb(errors, txHashes);
     }
   })
+}
+
+export const transfer = (fromAddr, toAddr, amount, symbol, privateKey, net, cb) => {
+  if (symbol == 'ETH') {
+    transferEths(fromAddr, toAddr, amount, privateKey, net, (err, txHash) => {
+      cb(error, txHash)
+    })
+  } else {
+    transferSents
+  }
 }
 
 export const addVpnUsage = (fromAddr, toAddr, sentBytes, sessionDuration, amount, timeStamp, cb) => {

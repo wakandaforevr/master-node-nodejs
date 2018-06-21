@@ -1,49 +1,42 @@
 import request from 'request'
+import axios from 'axios';
 import _ from 'lodash'
 import async from 'async'
 
-import { DECIMALS } from '../utils/config'
+import { DECIMALS, FEE_PERCENTAGE } from '../utils/config'
 import { TOKENS } from '../token_config'
 
 function Tokens() {
-  this.prices = {}
+  this.tokens = {}
+  for (var i = 0; i < TOKENS.length; i++)
+    this.tokens[TOKENS[i].symbol] = TOKENS[i]
 }
 
-Tokens.prototype.getToken = function (address = null, name = null) {
-  let Token = [];
-
-  if (address) {
-    TOKENS.map((token) => {
-      if (token['address'] === address) {
-        Token.push(token);
-      }
-    })
-  } else if (name) {
-    TOKENS.map((token) => {
-      if (token['name'] === name) {
-        Token.push(token);
-      }
-    })
+Tokens.prototype.getToken = function (symbol = null, address = null) {
+  if (symbol) {
+    return this.tokens[symbol]
+  } else if (address) {
+    keys = Object.keys(this.tokens)
+    for (let i = 0; i < keys.length; i++) {
+      let token = this.tokens[keys[i]]
+      if (token[address] === address)
+        return token
+    }
+  } else {
+    return null
   }
-  if (Token && Token.length > 0)
-    return Token[0]
-  return null
 }
 
-Tokens.prototype.getUsdPrice = function (token, cb) {
-  let usdPrice = null;
-  let that = this;
-  usdPrice = that.prices[token['name']] || null;
-  try {
-    request(token['price_url'], (error, response, body) => {
-      let data = JSON.parse(body)
-      usdPrice = parseFloat(data[0]['price_usd']);
-      that.prices[token['name']] = usdPrice;
-      cb(usdPrice);
+Tokens.prototype.getPrice = function (token, cb) {
+  let price = null;
+
+  axios.get(token['price_url'])
+    .then((res) => {
+      cb(parseFloat(res[0]['price_btc']))
     })
-  } catch (error) {
-    cb(usdPrice);
-  }
+    .catch((err) => {
+      console.log('err', err)
+    })
 }
 
 Tokens.prototype.calculateSents = function (token, value, cb) {
@@ -60,12 +53,12 @@ Tokens.prototype.calculateSents = function (token, value, cb) {
       name = that.getToken(null, 'SENTinel')
       next()
     }, (next) => {
-      that.getUsdPrice(name, (resp) => {
+      that.getPrice(name, (resp) => {
         sentUsd = resp;
         next()
       })
     }, (next) => {
-      that.getUsdPrice(token, (resp) => {
+      that.getPrice(token, (resp) => {
         tokenUsd = resp
         next()
       })
@@ -77,6 +70,31 @@ Tokens.prototype.calculateSents = function (token, value, cb) {
   ], (err, resp) => {
     console.log('sents', sents)
     return cb(sents)
+  })
+}
+
+Tokens.prototype.exchange = function (fromToken, toToken, value, cb) {
+  value = value / (1.0 * (Math.pow(10, fromToken['decimals'])))
+  let that = this;
+  let fromPrice = null;
+  let toToken = null;
+
+  async.waterfall([
+    (next) => {
+      that.getPrice(fromToken, (price) => {
+        fromPrice = price;
+        next();
+      })
+    }, (next) => {
+      that.getPrice(toToken, (price) => {
+        toToken = price;
+        next();
+      })
+    }
+  ], (err, resp) => {
+    value = value * (fromPrice / toPrice) * (1.0 - FEE_PERCENTAGE)
+    value = value * Math.pow(10, toToken['decimals'])
+    cb(value)
   })
 }
 

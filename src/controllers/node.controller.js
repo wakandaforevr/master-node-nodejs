@@ -41,7 +41,7 @@ export const registerNode = (req, res) => {
   let ip = req.body['ip']
   let location = req.body['location']
   let netSpeed = req.body['net_speed']
-  let vpnType = req.body['vpn_type'] || null
+  let vpnType = req.body['vpn_type'] || 'openvpn'
   let token = uuid.v4();
   let db = null;
   let joinedOn = Date.now() / 1000;

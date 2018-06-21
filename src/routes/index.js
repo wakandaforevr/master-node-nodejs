@@ -44,7 +44,7 @@ routes.post('/', (req, res) => {
 routes.use('/client', ClientRoutes);
 routes.use('/node', NodeRoutes);
 routes.use('/stats', StatsRoutes);
-routes.use('/tokens', TokenRoutes);
+routes.use('/swaps', TokenRoutes);
 
 routes.post('/logs/error', ErrorController.logTheError);
 routes.post('/dev/free', DevController.getFreeAmount);

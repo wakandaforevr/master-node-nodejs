@@ -6,112 +6,129 @@ import zfill from "zfill";
 import { dbs } from "../db/db";
 import * as EthHelper from "../helpers/eth";
 import { tokens } from '../helpers/tokens';
-import { CENTRAL_WALLET, CENTRAL_WALLET_PRIVATE_KEY } from '../utils/config'
+import {
+  CENTRAL_WALLET, CENTRAL_WALLET_PRIVATE_KEY,
+  ETHEREUM_BASED_COINS, BTC_BASED_COINS, ADDRESS as SWAP_ADDRESS
+} from '../utils/config'
+import { isValidEthereumSwap } from "../helpers/swaps";
+import { BTCHelper } from "../helpers/btc";
 
-var db = null;
+let db = null;
 
-const makeTx = (txHash0, status, message, txHash1 = null, cb) => {
-  db.collection('token_swaps').findOneAndUpdate({
-    'txHash_0': txHash0
-  }, {
-      '$set': {
-        'status': status,
-        'message': message,
-        'txHash_1': txHash1,
-        'time_1': Date.now() / 1000
-      }
-    }, (err, resp) => {
-      if (err) cb(err, null)
-      else cb(null, resp);
-    })
+const updateStatus = (key, status, txHash = null, cb) => {
+  console.log(key, status, txHash)
+  let findObj = null;
+  if (key.length == 66) {
+    findObj = { 'tx_hash_0': key }
+  } else if (key.length == 34) {
+    findObj = { 'from_address': key }
+  }
+  db.collection('swaps').findOneAndUpdate(findObj, {
+    '$set': {
+      'status': status['status'],
+      'message': status['message'],
+      'tx_hash_1': txHash,
+      'time_1': Date.now() / 1000
+    }
+  }, (err, resp) => {
+    cb()
+  })
 }
 
-const transfer = (fromAddr, toAddr, token, txHash0, value, cb) => {
-  if (fromAddr == CENTRAL_WALLET) {
-    tokens.calculateSents(token, value, (sents) => {
-      EthHelper.transferSents(CENTRAL_WALLET, toAddr, sents, CENTRAL_WALLET_PRIVATE_KEY, 'main', (err, txHash1) => {
-        console.log('err, txHash1', err, txHash1)
-        if (!err) {
-          cb(txHash0, 1, 'Transaction is initiated successfully.', txHash1);
-        } else {
-          cb(txHash0, -1, 'Error occurred while initiating transaction.');
-        }
-      })
+const transfer = (key, toAddr, value, toSymbol, cb) => {
+  let error = null;
+  let txHash1 = null;
+
+  if (ETHEREUM_BASED_COINS.includes(toSymbol)) {
+    EthHelper.transfer(SWAP_ADDRESS, toAddr, parseInt(value), toSymbol, SWAP_PRIVATE_KEY, 'main', (err, txHash1) => {
+      if (!err && txHash1) {
+        updateStatus(key, {
+          'status': 1,
+          'message': 'Transaction is initiated successfully.',
+        }, txHash1, () => {
+          cb()
+        })
+      } else {
+        updateStatus(key, {
+          'status': 0,
+          'message': 'Error occurred while initiating transaction.'
+        }, () => {
+          cb()
+        })
+      }
     })
-  } else {
-    cb(txHash0, -1, 'From address is not CENTRAL WALLET.');
+  } else if (BTC_BASED_COINS.includes(toSymbol)) {
+    BTCHelper.transfer(toAddr, value, toSymbol, (txHash1) => {
+      let err = txHash1 ? true : false;
+      if (!err && txHash1) {
+        updateStatus(key, {
+          'status': 1,
+          'message': 'Transaction is initiated successfully.',
+        }, txHash1, () => {
+          cb()
+        })
+      } else {
+        updateStatus(key, {
+          'status': 0,
+          'message': 'Error occurred while initiating transaction.'
+        }, () => {
+          cb()
+        })
+      }
+    })
   }
 }
 
-const checkTx = (transactions, cb) => {
-  each(transactions, (transaction, iterate) => {
-    var txHash0 = transaction['txHash_0']
-    var receipt = null;
-    var tx = null;
-    var fromAddr = null;
-    var toAddr = null;
-    var txValue = null;
-    var txInput = null;
-    var token = null;
-    var tokenValue = null;
-
-    waterfall([
-      (next) => {
-        EthHelper.getTxReceipt(txHash0, 'main', (err, txReceipt) => {
-          if (!err && txReceipt) {
-            receipt = txReceipt
-            next()
+const checkTx = (swaps, cb) => {
+  each(swaps, (swap, iterate) => {
+    let fromSymbol = swap['from_symbol'];
+    let toSymbol = swap['to_symbol'];
+    var txHash0 = swap['tx_hash_0'];
+    try {
+      if (ETHEREUM_BASED_COINS.includes(fromSymbol)) {
+        isValidEthereumSwap(txHash0, (err, details) => {
+          if (!err) {
+            let toAddr = details.fromAddr;
+            let value = detailstxValue;
+            let fromToken = details.token;
+            let toToken = tokens.getToken(toSymbol)
+            tokens.exchange(fromToken, toToken, value, (val) => {
+              value = val
+              if (BTC_BASED_COINS.includes(toSymbol)) {
+                transfer(txHash0, toAddr, value, toSymbol, () => {
+                  console.log('swapped ERC')
+                  iterate()
+                })
+              }
+            })
           } else {
-            next(txHash0, 0, 'Can\'t find the transaction receipt.')
+            updateStatus(txHash0, err, () => {
+              iterate()
+            })
           }
         })
-      }, (next) => {
-        if (receipt['status'] == 1) {
-          EthHelper.getTx(txHash0, 'main', (err, Tx) => {
-            if (!err && Tx) {
-              tx = Tx
-              next()
-            }
-          })
-        } else {
-          next(txHash0, -1, 'Failed transaction.')
-        }
-      }, (next) => {
-        fromAddr = tx['from'].toLowerCase()
-        toAddr = tx['to'].toLowerCase()
-        txValue = parseInt(tx['value'])
-        txInput = tx['input']
-
-        if (txValue == 0 && txInput.length == 138) {
-          token = tokens.getToken(toAddr)
-          if (token && token['name'] != 'SENTinel') {
-            if (txInput.substring(0, 10) === '0xa9059cbb') {
-              toAddr = txInput.substring(10, 74)
-              toAddr = ('0x' + zfill(ltrim(toAddr, '0'), 40)).toLowerCase();
-              tokenValue = parseInt('0x' + ltrim(txInput.substring(74, 138), '0'))
-              next();
-            } else {
-              next(txHash0, -1, 'Wrong transaction method.')
-            }
+      } else if (BTC_BASED_COINS.includes(fromSymbol)) {
+        let fromAddr = swap['from_address'];
+        let toAddr = swap['to_address'];
+        let fromToken = tokens.getToken(fromSymbol)
+        let toToken = tokens.getToken(toSymbol)
+        BTCHelper.getBalance(fromAddr, fromSymbol, (val) => {
+          if (val && val > 0) {
+            tokens.exchange(fromAddr, toAddr, value, toSymbol, (value) => {
+              transfer(fromAddr, toAddr, value, toSymbol, () => {
+                console.log('swapped BTC')
+                iterate()
+              })
+            })
           } else {
-            next(txHash0, -1, 'No token found.')
+            iterate()
           }
-        } else if (txValue > 0 && txInput.length == 2) {
-          token = tokens.getToken(toAddr)
-          next()
-        } else {
-          next(txHash0, -1, 'Not a valid transaction')
-        }
-      }, (next) => {
-        transfer(toAddr, fromAddr, token, txHash0, txValue, (TxHash0, Status, Message, TxHash1 = null) => {
-          next(TxHash0, Status, Message, TxHash1)
         })
       }
-    ], (TxHash0, Status, Message, TxHash1 = null) => {
-      makeTx(TxHash0, Status, Message, TxHash1, (err, resp) => {
-        iterate()
-      })
-    })
+    } catch (error) {
+      console.log(error)
+      iterate()
+    }
   }, () => {
     cb()
   })
@@ -123,12 +140,12 @@ export const swaps = (data) => {
       waterfall([
         (next) => {
           dbs((err, dbo) => {
-            db = dbo.db('sentinel1');
+            db = dbo.db('sentinel');
             next()
           })
         }, (next) => {
-          db.collection('token_swaps').find({ status: 0 }).toArray((err, transactions) => {
-            checkTx(transactions, () => {
+          db.collection('swaps').find({ status: 0 }).toArray((err, swaps) => {
+            checkTx(swaps, () => {
               next()
             })
           })
