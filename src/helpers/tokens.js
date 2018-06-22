@@ -2,13 +2,12 @@ import request from 'request'
 import axios from 'axios';
 import _ from 'lodash'
 import async from 'async'
-
-import { DECIMALS, FEE_PERCENTAGE } from '../utils/config'
-import { TOKENS } from '../token_config'
+import { FEE_PERCENTAGE, TOKENS } from '../config/swaps';
+import { DECIMALS } from '../config/vars';
 
 function Tokens() {
   this.tokens = {}
-  for (var i = 0; i < TOKENS.length; i++)
+  for (let i = 0; i < TOKENS.length; i++)
     this.tokens[TOKENS[i].symbol] = TOKENS[i]
 }
 
@@ -32,7 +31,7 @@ Tokens.prototype.getPrice = function (token, cb) {
 
   axios.get(token['price_url'])
     .then((res) => {
-      cb(parseFloat(res[0]['price_btc']))
+      cb(parseFloat(res.data[0]['price_btc']))
     })
     .catch((err) => {
       console.log('err', err)
@@ -77,7 +76,7 @@ Tokens.prototype.exchange = function (fromToken, toToken, value, cb) {
   value = value / (1.0 * (Math.pow(10, fromToken['decimals'])))
   let that = this;
   let fromPrice = null;
-  let toToken = null;
+  let toPrice = null;
 
   async.waterfall([
     (next) => {
@@ -87,7 +86,7 @@ Tokens.prototype.exchange = function (fromToken, toToken, value, cb) {
       })
     }, (next) => {
       that.getPrice(toToken, (price) => {
-        toToken = price;
+        toPrice = price;
         next();
       })
     }

@@ -6,12 +6,14 @@ import zfill from "zfill";
 import { dbs } from "../db/db";
 import * as EthHelper from "../helpers/eth";
 import { tokens } from '../helpers/tokens';
-import {
-  CENTRAL_WALLET, CENTRAL_WALLET_PRIVATE_KEY,
-  ETHEREUM_BASED_COINS, BTC_BASED_COINS, ADDRESS as SWAP_ADDRESS
-} from '../utils/config'
 import { isValidEthereumSwap } from "../helpers/swaps";
 import { BTCHelper } from "../helpers/btc";
+import {
+  ADDRESS as SWAP_ADDRESS,
+  BTC_BASED_COINS,
+  ETHEREUM_BASED_COINS,
+  PRIVATE_KEY as SWAP_PRIVATE_KEY
+} from "../config/swaps";
 
 let db = null;
 
@@ -83,7 +85,7 @@ const checkTx = (swaps, cb) => {
   each(swaps, (swap, iterate) => {
     let fromSymbol = swap['from_symbol'];
     let toSymbol = swap['to_symbol'];
-    var txHash0 = swap['tx_hash_0'];
+    let txHash0 = swap['tx_hash_0'];
     try {
       if (ETHEREUM_BASED_COINS.includes(fromSymbol)) {
         isValidEthereumSwap(txHash0, (err, details) => {

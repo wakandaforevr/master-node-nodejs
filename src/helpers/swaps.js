@@ -3,8 +3,10 @@ import zfill from "zfill";
 import { waterfall } from "async";
 
 import * as EthHelper from "./eth";
-import { ADDRESS as SWAP_ADDRESS } from "../utils/config";
+import { ADDRESS as SWAP_ADDRESS } from "../config/swaps";
+
 import { tokens } from "./tokens";
+
 
 export const isValidEthereumSwap = (txHash) => {
   let receipt = null;
@@ -68,7 +70,7 @@ export const isValidEthereumSwap = (txHash) => {
           }, null)
         }
       } else if (txValue == 0 && txInput.length == 138) {
-        token = tokens.getToken(address = toAddr)
+        token = tokens.getToken(null, address = toAddr)
         if (token) {
           if (txInput.substring(0, 10) == '0xa9059cbb') {
             toAddr = txInput.substring(10, 74)

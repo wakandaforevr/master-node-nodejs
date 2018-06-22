@@ -3,14 +3,12 @@ import request from 'request';
 import uuid from 'uuid'
 import axios from 'axios';
 
-import * as VpnManager from '../eth/vpn_contract'
+import { VpnServiceManager } from "../eth/vpn_contract";
 import * as EthHelper from '../helpers/eth';
 import { dbs } from '../db/db';
-import { SENT_BALANCE, VPNSERVICE_ADDRESS, DECIMALS, COINBASE_ADDRESS } from '../utils/config';
-
-var instance = axios.create({
-  timeout: 1000
-})
+import { SENT_BALANCE } from '../utils/config';
+import { DECIMALS } from '../config/vars';
+import { ADDRESS as COINBASE_ADDRESS } from '../config/eth';
 
 /**
 * @api {get} /client/vpn/list Get all unoccupied VPN servers list.
@@ -123,19 +121,22 @@ export const getCurrentVpnUsage = (req, res) => {
       _id: 0,
       server_usage: 1
     }, (err, result) => {
-      if (!result) res.send({
-        success: true,
-        usage: {
-          down: 0,
-          up: 0
-        }
-      })
-      else res.send({
-        success: true,
-        usage: result.server_usage
-      })
+      console.log('err, result', err, result)
+      if (!result && !result.usage) {
+        res.send({
+          success: true,
+          usage: {
+            down: 0,
+            up: 0
+          }
+        })
+      } else {
+        res.send({
+          success: true,
+          usage: result.server_usage || result.usage
+        })
+      }
     })
-
 }
 
 /**
@@ -226,9 +227,8 @@ export const getVpnCredentials = (req, res) => {
             account_addr: accountAddr,
             token: token
           };
-          // let url = 'http://' + ip + ':' + port + '/token';
-          let url = 'http://localhost:3000'
-          console.log('url is ', url)
+          let url = 'http://' + ip + ':' + port + '/token';
+          // let url = 'http://localhost:3000'
           axios.post(url, JSON.stringify(body))
             .then((resp) => {
               next(null, {
@@ -244,7 +244,7 @@ export const getVpnCredentials = (req, res) => {
               next({
                 'success': false,
                 'message': 'Connection timed out while connecting to VPN server.',
-                // 'error': err
+                'error': err
               }, null);
             })
         } else {
@@ -322,7 +322,7 @@ export const reportPayment = (req, res) => {
   let sessionId = parseInt(req.body['session_id'])
 
   EthHelper.getValidNonce(COINBASE_ADDRESS, 'rinkeby', (nonce) => {
-    VpnManager.payVpnSession(fromAddr, amount, sessionId, nonce, (error, txHash) => {
+    VpnServiceManager.payVpnSession(fromAddr, amount, sessionId, nonce, (error, txHash) => {
       if (!error) {
         res.status(200).send({
           'success': true,

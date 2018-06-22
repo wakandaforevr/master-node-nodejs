@@ -1,9 +1,9 @@
 import async from 'async'
-
-import { TOKENS } from '../token_config'
 import { tokens } from '../helpers/tokens'
-import { CENTRAL_WALLET, DECIMALS, ADDRESS } from '../utils/config'
 import * as ETHHelper from '../helpers/eth'
+import { ADDRESS as SWAP_ADDRESS, TOKENS } from '../config/swaps';
+import { DECIMALS } from '../config/vars';
+import { BTCHelper } from '../helpers/btc'
 
 export const getAvailableTokens = (req, res) => {
   let dailyCount = [];
@@ -14,33 +14,11 @@ export const getAvailableTokens = (req, res) => {
     delete item.price_url
     next()
   }, () => {
-    res.status = 200;
-    res.send({
+    res.status(200).send({
       'success': true,
       'tokens': token,
     })
   })
-}
-
-export const getSents = (req, res) => {
-  let toAddr = req.query['to_addr'];
-  toAddr = toAddr.toString();
-  let value = req.query['value'];
-  let token = tokens.getToken(toAddr);
-
-  if (token) {
-    tokens.calculateSents(token, value, (sents) => {
-      res.send({
-        'success': true,
-        'sents': sents
-      })
-    })
-  } else {
-    res.send({
-      'success': false,
-      'message': 'No token found.'
-    })
-  }
 }
 
 export const tokenSwapRawTransaction = (req, res) => {
@@ -67,7 +45,7 @@ export const tokenSwapRawTransaction = (req, res) => {
       }) */
       next()
     }, (next) => {
-      /* ETHHelper.getBalances(CENTRAL_WALLET, (err, availSents) => {
+      /* ETHHelper.getBalances(SWAP_ADDRESS, (err, availSents) => {
         console.log('requested sents', availSents, err, '----------------------------------------------------------------------------')
         availableSents = availSents
         next()
@@ -130,8 +108,8 @@ export const getExchangeValue = (req, res) => {
     tokens.exchange(fromToken, toToken, value, (value) => {
       message.success = true;
       message.value = value;
+      res.status(200).send(message)
     })
-    res.status(200).send(message)
   }
 }
 
@@ -144,7 +122,7 @@ export const swapStatus = (req, res) => {
   else if (key.length == 34)
     findObj = { 'from_address': key }
 
-  global.db.collection('swaps').findOne({ findObj }, { _id: 0 }, (err, resp) => {
+  global.db.collection('swaps').findOne({ findObj }, { _id: 0 }, (err, result) => {
     let message = {}
     if (!result) {
       message = {
@@ -161,7 +139,7 @@ export const swapStatus = (req, res) => {
   })
 }
 
-export const getNewAddress = () => {
+export const getNewAddress = (req, res) => {
   let toAddress = req.body['account_addr']
   let fromToken = tokens.getToken(req.body['from'])
   let toToken = tokens.getToken(req.body['to'])
@@ -181,13 +159,14 @@ export const getNewAddress = () => {
           'success': true,
           'address': fromAddress
         }
+        res.status(200).send(message)
       })
     } else {
       message = {
         'success': false,
         'message': `Error occurred while getting ${fromAddress['symbol']} address.`
       }
-      res.status(200).send(message)
+      res.status(400).send(message)
     }
   })
 }

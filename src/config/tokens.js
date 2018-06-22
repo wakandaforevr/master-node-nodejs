@@ -1,7 +1,7 @@
 module.exports.MAIN_TOKENS = {
   'SENT': {
       'name': 'SENTinel',
-      'address': '0xa44e5137293e855b1b7bc7e2c6f8cd796ffcb037'.lower(),
+      'address': '0xa44e5137293e855b1b7bc7e2c6f8cd796ffcb037'.toLowerCase(),
       'abi': [{"constant": true, "inputs": [], "name": "name", "outputs": [{"name": "", "type": "string"}],
                "payable": false, "stateMutability": "view", "type": "function"}, {"constant": false, "inputs": [
           {"name": "_spender", "type": "address"}, {"name": "_value", "type": "uint256"}], "name": "approve",
@@ -77,7 +77,7 @@ module.exports.MAIN_TOKENS = {
   },
   'BNB': {
       'name': 'Binance Coin',
-      'address': '0xb8c77482e45f1f44de1745f52c74426c631bdd52'.lower(),
+      'address': '0xb8c77482e45f1f44de1745f52c74426c631bdd52'.toLowerCase(),
       'abi': [{"constant": true, "inputs": [], "name": "name", "outputs": [{"name": "", "type": "string"}],
                "payable": false, "type": "function"}, {"constant": false,
                                                        "inputs": [{"name": "_spender", "type": "address"},
@@ -139,7 +139,7 @@ module.exports.MAIN_TOKENS = {
 module.exports.RINKEBY_TOKENS = {
   'SENT': {
       'name': 'Sentinel Test Token',
-      'address': '0x29317B796510afC25794E511e7B10659Ca18048B'.lower(),
+      'address': '0x29317B796510afC25794E511e7B10659Ca18048B'.toLowerCase(),
       'abi': [{"constant": true, "inputs": [], "name": "name", "outputs": [{"name": "", "type": "string"}],
                "payable": false, "stateMutability": "view", "type": "function"}, {"constant": false, "inputs": [
           {"name": "_spender", "type": "address"}, {"name": "_value", "type": "uint256"}], "name": "approve",

@@ -5,16 +5,6 @@ import crypto from 'crypto';
 import Tx from 'ethereumjs-tx';
 import async from 'async';
 import keythereum from 'keythereum'
-import {
-  SENTINEL_ADDRESS,
-  SENTINEL_ABI,
-  SENTINEL_NAME,
-  VPNSERVICE_ABI,
-  VPNSERVICE_ADDRESS,
-  DECIMALS,
-  COINBASE_ADDRESS,
-  COINBASE_PRIVATE_KEY
-} from '../utils/config'
 
 function ETHManager(provider = null, rpcURL = null) {
   this.provider = provider;
@@ -34,8 +24,7 @@ ETHManager.prototype.createAccount = function (password, cb) {
     }
     cb(null, accountDetails)
   } catch (error) {
-    if (err) cb({ 'code': 101, 'error': err }, null);
-    else cb(null, txHash);
+    cb({ 'code': 101, 'error': error }, null);
   }
 }
 
@@ -54,8 +43,7 @@ ETHManager.prototype.getAddress = function (privateKey, cb) {
 
     cb(null, address);
   } catch (error) {
-    if (err) cb({ 'code': 103, 'error': err }, null);
-    else cb(null, txHash);
+    cb({ 'code': 104, 'error': error }, null)
   }
 }
 
@@ -113,19 +101,9 @@ ETHManager.prototype.getTransaction = function (txHash, cb) {
   })
 }
 
-if (process.env.SENT_ENV === 'PROD') {
-  module.exports.ETHManager = new ETHManager('rpc', 'https://mainnet.infura.io/aiAxnxbpJ4aG0zed1aMy')
-  module.exports.mainnet = new ETHManager('rpc', 'https://mainnet.infura.io/aiAxnxbpJ4aG0zed1aMy')
-} else {
-  module.exports.ETHManager = new ETHManager('rpc', 'https://mainnet.infura.io/aiAxnxbpJ4aG0zed1aMy')
-  module.exports.mainnet = new ETHManager('rpc', 'https://mainnet.infura.io/aiAxnxbpJ4aG0zed1aMy')
-}
-
-module.exports.rinkeby = new ETHManager('rpc', 'https://rinkeby.infura.io/aiAxnxbpJ4aG0zed1aMy')
-
 let eth_manager = {
-  'main': new ETHManager('rpc', 'https://rinkeby.infura.io/aiAxnxbpJ4aG0zed1aMy'),
-  'rinkeby': new ETHManager('rpc', 'https://mainnet.infura.io/aiAxnxbpJ4aG0zed1aMy')
+  'main': new ETHManager('rpc', 'https://mainnet.infura.io/aiAxnxbpJ4aG0zed1aMy'),
+  'rinkeby': new ETHManager('rpc', 'https://rinkeby.infura.io/aiAxnxbpJ4aG0zed1aMy')
 }
 
 module.exports = {

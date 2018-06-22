@@ -5,8 +5,7 @@ import { exec } from "child_process";
 
 import { dbs } from '../db/db';
 import * as EthHelper from '../helpers/eth'
-
-import { DECIMALS } from '../utils/config'
+import { DECIMALS } from '../config/vars';
 
 const getLatency = (url, cb) => {
   const avgLatencyCmd = "ping -c 2 " + url + " | tail -1 | awk '{print $4}' | cut -d '/' -f 2"
@@ -310,7 +309,7 @@ export const updateConnections = (req, res) => {
     }, (next) => {
       let endTime = Date.now() / 1000;
       let endedConnections = [];
-      var sesName = {};
+      let sesName = {};
       sesName[cond] = sessionNames;
 
       global.db.collection('connections').updateMany({

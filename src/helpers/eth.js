@@ -3,12 +3,13 @@ import redis from 'redis'
 import sleep from 'sleep'
 import async from 'async'
 
-import { ETHManager, rinkeby, mainnet, Eth_manager } from '../eth/eth';
-import { SentinelMain, SentinelRinkeby, ERC20Manager } from '../eth/erc20';
-import { DECIMALS, COINBASE_ADDRESS, COINBASE_PRIVATE_KEY, SESSIONS_SALT, LIMIT_10MB, LIMIT_100MB } from '../utils/config';
-import * as VpnManager from '../eth/vpn_contract';
+import { Eth_manager } from '../eth/eth';
+import { ERC20Manager } from '../eth/erc20';
+import { VpnServiceManager } from '../eth/vpn_contract';
+import { LIMIT_10MB, LIMIT_100MB, SESSIONS_SALT } from '../config/vars';
+import { ADDRESS as COINBASE_ADDRESS, PRIVATE_KEY as COINBASE_PRIVATE_KEY } from '../config/eth';
 
-var redisClient = redis.createClient();
+let redisClient = redis.createClient();
 
 const getEncodedSessionId = async (accountAddr, index, cb) => {
   accountAddr = accountAddr.toString('utf8');
@@ -18,17 +19,69 @@ const getEncodedSessionId = async (accountAddr, index, cb) => {
   return cb(sessionId)
 }
 
+export const createAccount = (password, cb) => {
+  Eth_manager['main'].createAccount(password, (err, accountDetails) => {
+    cb(err, accountDetails);
+  });
+}
+
+export const getAccountAddress = (privateKey, cb) => {
+  Eth_manager['main'].getAddress(privateKey,
+    (err, address) => {
+      let accountAddress = address.substr(2)
+      cb(null, accountAddress)
+    })
+}
+
+export const getTxReceipt = (txHash, net, cb) => {
+  if (net === 'main') {
+    Eth_manager['main'].getTransactionReceipt(txHash, (err, receipt) => {
+      cb(err, receipt)
+    })
+  }
+  else if (net === 'rinkeby') {
+    Eth_manager['rinkeby'].getTransactionReceipt(txHash, (err, receipt) => {
+      cb(err, receipt)
+    })
+  }
+}
+
+export const getTx = (txHash, net, cb) => {
+  if (net === 'main') {
+    Eth_manager['main'].getTransaction(txHash, (err, receipt) => {
+      cb(err, receipt)
+    })
+  }
+  else if (net === 'rinkeby') {
+    Eth_manager['rinkeby'].getTransaction(txHash, (err, receipt) => {
+      cb(err, receipt)
+    })
+  }
+}
+
+export const getTxCount = (accountAddr, net, cb) => {
+  if (net == 'main') {
+    Eth_manager['main'].getTransactionCount(accountAddr, (err, txCount) => {
+      cb(txCount)
+    })
+  } else if (net == 'rinkeby') {
+    Eth_manager['rinkeby'].getTransactionCount(accountAddr, (err, txCount) => {
+      cb(txCount)
+    })
+  }
+}
+
 export const getValidNonce = (accountAddr, net, cb) => {
   let key = accountAddr + '_' + net;
   let previousNonce = redisClient.get(key);
-  let error = -1;
-  let nonce = -1;
+  let error = null;
+  let nonce = 0;
 
   if (previousNonce)
     previousNonce = parseInt(previousNonce);
 
   if (net == 'main') {
-    mainnet.getTransactionCount(accountAddr, (err, nonce) => {
+    Eth_manager['main'].getTransactionCount(accountAddr, (err, nonce) => {
       if (!err && (!previousNonce || nonce > previousNonce)) {
         redisClient.set(key, nonce)
         return cb(nonce)
@@ -38,7 +91,7 @@ export const getValidNonce = (accountAddr, net, cb) => {
       }
     })
   } else if (net == 'rinkeby') {
-    rinkeby.getTransactionCount(accountAddr, (err, nonce) => {
+    Eth_manager['rinkeby'].getTransactionCount(accountAddr, (err, nonce) => {
       if (!err && (!previousNonce || nonce > previousNonce)) {
         redisClient.set(key, nonce)
         return cb(nonce)
@@ -48,12 +101,6 @@ export const getValidNonce = (accountAddr, net, cb) => {
       }
     })
   }
-}
-
-export const createAccount = (password, cb) => {
-  mainnet.createAccount(password, (err, accountDetails) => {
-    cb(err, accountDetails);
-  });
 }
 
 export const getBalances = (accountAddr, cb) => {
@@ -69,13 +116,13 @@ export const getBalances = (accountAddr, cb) => {
   }
 
   try {
-    mainnet.getBalance(accountAddr, (err, balance) => {
+    Eth_manager['main'].getBalance(accountAddr, (err, balance) => {
       balances.main.eths = balance
-      SentinelMain.getBalance(accountAddr, (err, balance) => {
+      ERC20Manager['main']['SENT'].getBalance(accountAddr, (err, balance) => {
         balances.main.sents = balance
-        rinkeby.getBalance(accountAddr, (err, balance) => {
+        Eth_manager['rinkeby'].getBalance(accountAddr, (err, balance) => {
           balances.test.eths = balance
-          SentinelRinkeby.getBalance(accountAddr, (err, balance) => {
+          ERC20Manager['rinkeby']['SENT'].getBalance(accountAddr, (err, balance) => {
             balances.test.sents = balance
             cb(null, balances);
           })
@@ -87,44 +134,18 @@ export const getBalances = (accountAddr, cb) => {
   }
 }
 
-export const getTxReceipt = (txHash, net, cb) => {
-  if (net === 'main') {
-    mainnet.getTransactionReceipt(txHash, (err, receipt) => {
-      cb(err, receipt)
-    })
-  }
-  else if (net === 'rinkeby') {
-    rinkeby.getTransactionReceipt(txHash, (err, receipt) => {
-      cb(err, receipt)
-    })
-  }
-}
-
-export const getTx = (txHash, net, cb) => {
-  if (net === 'main') {
-    mainnet.getTransaction(txHash, (err, receipt) => {
-      cb(err, receipt)
-    })
-  }
-  else if (net === 'rinkeby') {
-    rinkeby.getTransaction(txHash, (err, receipt) => {
-      cb(err, receipt)
-    })
-  }
-}
-
-export const transferSents = (fromAddr, toAddr, amount, privateKey, net, cb) => {
-  getValidNonce(fromAddr, net, (nonce = null) => {
-    if (net == 'main') {
-      SentinelMain.transferAmount(toAddr, amount, privateKey, nonce, (err, txHash) => {
-        cb(err, txHash)
+export const transfer = (fromAddr, toAddr, amount, symbol, privateKey, net, cb) => {
+  if (symbol == 'ETH') {
+    transferEths(fromAddr, toAddr, amount, privateKey, net,
+      (err, resp) => {
+        cb(err, resp)
       })
-    } else if (net == 'rinkeby') {
-      SentinelRinkeby.transferAmount(toAddr, amount, privateKey, nonce, (err, txHash) => {
-        cb(err, txHash)
+  } else {
+    transferErc20(fromAddr, toAddr, amount, symbol, privateKey, net,
+      (err, resp) => {
+        cb(err, resp);
       })
-    }
-  })
+  }
 }
 
 export const transferErc20 = (fromAddr, toAddr, amount, symbol, privateKey, net, cb) => {
@@ -147,106 +168,63 @@ export const transferEths = (fromAddr, toAddr, amount, privateKey, net, cb) => {
   }
 }
 
-export const free = (toAddr, eths, sents, cb) => {
-  let errors = [], txHashes = []
-
-  let PRIVATE_KEY = Buffer.from(COINBASE_PRIVATE_KEY, 'hex');
-  transferEths(COINBASE_ADDRESS, toAddr, eths, PRIVATE_KEY, 'rinkeby', (err, txHash) => {
-    if (!err) {
-      txHashes.push(txHash);
-      transferSents(COINBASE_ADDRESS, toAddr, eths, PRIVATE_KEY, 'rinkeby', (err, txHash) => {
-        if (!err) {
-          txHashes.push(txHash);
-          cb(errors, txHashes);
-        } else {
-          errors.push(errors);
-          cb(errors, txHashes);
-        }
-      })
-    } else {
-      errors.push(err);
-      cb(errors, txHashes);
-    }
-  });
-}
-
-export const getAccountAddress = (privateKey, cb) => {
-  mainnet.getAddress(privateKey,
-    (err, address) => {
-      let accountAddress = address.substr(2)
-      cb(null, accountAddress)
-    })
-}
-
 export const rawTransaction = (txData, net, cb) => {
   if (net == 'main') {
-    mainnet.sendRawTransaction(txData,
+    Eth_manager['main'].sendRawTransaction(txData,
       (err, txHash) => {
         cb(err, txHash);
       })
   }
   else if (net == 'rinkeby') {
-    rinkeby.sendRawTransaction(txData,
+    Eth_manager['rinkeby'].sendRawTransaction(txData,
       (err, txHash) => {
         cb(err, txHash);
       })
   }
 }
 
+export const getInitialPayment = (accountAddr, cb) => {
+  VpnServiceManager.getInitialPayment(accountAddr, (err, isPayed) => {
+    cb(err, isPayed)
+  })
+}
+
 export const getDueAmount = (accountAddr, cb) => {
-  VpnManager.getDueAmount(accountAddr,
+  VpnServiceManager.getDueAmount(accountAddr,
     (err, dueAmount) => {
       cb(err, dueAmount);
     });
 }
 
-export const getVpnSessionCount = (account_addr, cb) => {
-  VpnManager.getVpnSessionCount(account_addr, (err, sessions) => {
+export const getVpnSessionCount = (accountAddr, cb) => {
+  VpnServiceManager.getVpnSessionCount(accountAddr, (err, sessions) => {
     cb(err, sessions);
   })
 }
 
-export const getInitialPayment = (accountAddr, cb) => {
-  VpnManager.getInitialPayment(accountAddr, (err, isPayed) => {
-    cb(err, isPayed)
+export const getLatestVpnUsage = (accountAddr, cb) => {
+  getVpnSessionCount(accountAddr, (err, sessionsCount) => {
+    if (!err && sessionsCount > 0) {
+      getEncodedSessionId(accountAddr, sessionsCount - 1, (sessionId) => {
+        VpnServiceManager.getVpnUsage(accountAddr, sessionId, (err, _usage) => {
+          if (!err) {
+            let usage = {
+              'id': sessionId,
+              'account_addr': _usage[0].toString().toLowerCase(),
+              'received_bytes': _usage[1],
+              'session_duration': _usage[2],
+              'amount': _usage[3],
+              'timestamp': _usage[4],
+              'is_paid': _usage[5]
+            }
+            cb(null, usage)
+          } else {
+            cb(err, null)
+          }
+        })
+      })
+    }
   })
-}
-
-export const transfer = (fromAddr, toAddr, amount, symbol, privateKey, net, cb) => {
-  if (symbol == 'ETH') {
-    transferEths(fromAddr, toAddr, amount, privateKey, net,
-      (err, resp) => {
-        cb(err, resp)
-      })
-  } else {
-    transferErc20(fromAddr, toAddr, amount, symbol, privateKey, net,
-      (err, resp) => {
-        cb(err, resp);
-      })
-  }
-}
-
-
-export const transferAmount = (fromAddr, toAddr, amount, unit, keystore, password, privateKey = null, cb) => {
-  if (!privateKey) {
-    ETHManager.getprivatekey(keystore, password,
-      (err, privateKey) => {
-        privateKey = privateKey
-        if (err)
-          return cb(err, null)
-        if (unit == 'ETH') {
-          ETHManager.transferAmount(fromAddr, toAddr, amount, privateKey,
-            (err, resp) => {
-              cb(err, resp)
-            })
-        } else {
-          SentinelMain.transferAmount(fromAddr, toAddr, amount, privateKey,
-            (err, resp) => {
-              cb(err, resp);
-            })
-        }
-      })
-  }
 }
 
 export const getVpnUsage = async (accountAddr, cb) => {
@@ -259,11 +237,11 @@ export const getVpnUsage = async (accountAddr, cb) => {
     },
     'sessions': []
   }
-  VpnManager.getVpnSessionCount(accountAddr, (err, sessions) => {
+  VpnServiceManager.getVpnSessionCount(accountAddr, (err, sessions) => {
     if (!err) {
       async.times(sessions, (index, next) => {
         getEncodedSessionId(accountAddr, index, (sessionId) => {
-          VpnManager.getVpnUsage(accountAddr, sessionId, (error, _usage) => {
+          VpnServiceManager.getVpnUsage(accountAddr, sessionId, (error, _usage) => {
             if (!error) {
               if (!_usage[5])
                 usage['due'] += _usage[3]
@@ -303,7 +281,7 @@ export const payVpnSession = (fromAddr, amount, sessionId, net, txData, paymentT
       txHashes.push(txHash1)
       getValidNonce(COINBASE_ADDRESS, 'rinkeby', (nonce) => {
         if (paymentType == 'init') {
-          VpnManager.setInitialPayment(fromAddr, nonce, (err2, txHash2) => {
+          VpnServiceManager.setInitialPayment(fromAddr, nonce, (err2, txHash2) => {
             if (!err2) {
               txHashes.push(txHash2)
               return cb(errors, txHashes)
@@ -313,7 +291,7 @@ export const payVpnSession = (fromAddr, amount, sessionId, net, txData, paymentT
             }
           })
         } else if (paymentType == 'normal') {
-          VpnManager.payVpnSession(fromAddr, amount, sessionId, nonce, (err2, txHash2) => {
+          VpnServiceManager.payVpnSession(fromAddr, amount, sessionId, nonce, (err2, txHash2) => {
             if (!err2) {
               txHashes.push(txHash2)
               return cb(errors, txHashes)
@@ -331,16 +309,6 @@ export const payVpnSession = (fromAddr, amount, sessionId, net, txData, paymentT
       return cb(errors, txHashes);
     }
   })
-}
-
-export const transfer = (fromAddr, toAddr, amount, symbol, privateKey, net, cb) => {
-  if (symbol == 'ETH') {
-    transferEths(fromAddr, toAddr, amount, privateKey, net, (err, txHash) => {
-      cb(error, txHash)
-    })
-  } else {
-    transferSents
-  }
 }
 
 export const addVpnUsage = (fromAddr, toAddr, sentBytes, sessionDuration, amount, timeStamp, cb) => {
@@ -422,7 +390,7 @@ export const addVpnUsage = (fromAddr, toAddr, sentBytes, sessionDuration, amount
     }, (next) => {
       if (makeTx) {
         getValidNonce(COINBASE_ADDRESS, 'rinkeby', (nonce) => {
-          VpnManager.addVpnUsage(fromAddr, toAddr, sentBytes, sessionDuration, amount, timeStamp, sessionId, nonce,
+          VpnServiceManager.addVpnUsage(fromAddr, toAddr, sentBytes, sessionDuration, amount, timeStamp, sessionId, nonce,
             (err, txHash) => {
               next(err, txHash)
             })
@@ -434,4 +402,27 @@ export const addVpnUsage = (fromAddr, toAddr, sentBytes, sessionDuration, amount
   ], (err, resp) => {
     cb(err, resp);
   })
+}
+
+export const free = (toAddr, eths, sents, cb) => {
+  let errors = [], txHashes = []
+
+  let PRIVATE_KEY = Buffer.from(COINBASE_PRIVATE_KEY, 'hex');
+  transferEths(COINBASE_ADDRESS, toAddr, eths, PRIVATE_KEY, 'rinkeby', (err, txHash) => {
+    if (!err) {
+      txHashes.push(txHash);
+      transferSents(COINBASE_ADDRESS, toAddr, eths, PRIVATE_KEY, 'rinkeby', (err, txHash) => {
+        if (!err) {
+          txHashes.push(txHash);
+          cb(errors, txHashes);
+        } else {
+          errors.push(errors);
+          cb(errors, txHashes);
+        }
+      })
+    } else {
+      errors.push(err);
+      cb(errors, txHashes);
+    }
+  });
 }

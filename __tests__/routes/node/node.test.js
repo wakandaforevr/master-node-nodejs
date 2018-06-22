@@ -35,18 +35,17 @@ const payVpnUsageDetails = {
   session_id: '6c0ae80bae6806e65b488d3a482d9adb',
 }
 
-describe('routes for report payment', () => {
-  describe('/POST ' + reportPayment, () => {
-    it('should return transaction hash on success', (done) => {
-      chai.request(server)
-        .post(reportPayment)
-        .send(payVpnUsageDetails)
-        .end((err, res) => {
-          console.log('err, res', err, res.body)
-          res.should.have.status(200);
-          res.body.should.have.property('success').eql(true);
-          done()
-        })
-    }).timeout(10000)
-  })
-})
+// describe('routes for report payment', () => {
+//   describe('/POST ' + reportPayment, () => {
+//     it('should return transaction hash on success', (done) => {
+//       chai.request(server)
+//         .post(reportPayment)
+//         .send(payVpnUsageDetails)
+//         .end((err, res) => {
+//           res.should.have.status(200);
+//           res.body.should.have.property('success').eql(true);
+//           done()
+//         })
+//     }).timeout(10000)
+//   })
+// })

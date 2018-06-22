@@ -1,14 +1,14 @@
-var schedule = require('node-schedule')
-var async = require('async')
-var dbo = require('../db/db')
+let schedule = require('node-schedule')
+let async = require('async')
+let dbo = require('../db/db')
 
 
 export const alive = function (data) {
-  var maxSecs = data.maxSecs || null;
-  var db = null
+  let maxSecs = data.maxSecs || null;
+  let db = null
   if (data.message == 'start') {
     schedule.scheduleJob('*/5 * * * * *', function () {
-      var minTime = Date.now() / 1000 - maxSecs;
+      let minTime = Date.now() / 1000 - maxSecs;
 
       async.waterfall([
         (next) => {

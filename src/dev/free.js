@@ -1,6 +1,6 @@
-import { DECIMALS } from '../utils/config'
 import { dbs } from '../db/db'
 import * as ETHHelper from '../helpers/eth'
+import { DECIMALS } from '../config/vars';
 
 let db = null;
 

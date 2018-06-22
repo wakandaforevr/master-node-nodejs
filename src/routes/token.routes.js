@@ -5,15 +5,21 @@ import * as TokenController from '../controllers/token.controller';
 const routes = new Router();
 
 routes.post('/', (req, res) => {
-  res.status = 200;
-  res.send({
+  res.status(200).send({
+    'status': 'UP'
+  })
+});
+
+routes.get('/', (req, res) => {
+  res.status(200).send({
     'status': 'UP'
   })
 });
 
 routes.get('/available', TokenController.getAvailableTokens);
-routes.get('/swaps/exchange', TokenController.getExchangeValue)
-routes.get('/sents', TokenController.getSents);
-routes.post('/swaps/raw-transaction', TokenController.tokenSwapRawTransaction);
+routes.get('/exchange', TokenController.getExchangeValue);
+routes.post('/raw-transaction', TokenController.tokenSwapRawTransaction);
+routes.get('/status', TokenController.swapStatus);
+routes.post('/new-address', TokenController.getNewAddress);
 
 export default routes;
