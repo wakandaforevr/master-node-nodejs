@@ -7,8 +7,8 @@ import { BTCHelper } from '../helpers/btc'
 
 export const getAvailableTokens = (req, res) => {
   let dailyCount = [];
-  let token = [];
-  token = Object.assign([], TOKENS)
+  // token = Object.assign([], TOKENS)
+  let token = JSON.parse(JSON.stringify(TOKENS));
 
   async.eachSeries(token, (item, next) => {
     delete item.price_url
