@@ -74,6 +74,7 @@ Tokens.prototype.calculateSents = function (token, value, cb) {
 
 Tokens.prototype.exchange = function (fromToken, toToken, value, cb) {
   value = value / (1.0 * (Math.pow(10, fromToken['decimals'])))
+  console.log('value', value, '------------------------------------------------------------------------------------------------')
   let that = this;
   let fromPrice = null;
   let toPrice = null;
@@ -81,17 +82,20 @@ Tokens.prototype.exchange = function (fromToken, toToken, value, cb) {
   async.waterfall([
     (next) => {
       that.getPrice(fromToken, (price) => {
+        console.log('from price-----------------------------------------------------------------------------------------', price)
         fromPrice = price;
         next();
       })
     }, (next) => {
       that.getPrice(toToken, (price) => {
+        console.log('to price-----------------------------------------------------------------------------------------', price)
         toPrice = price;
         next();
       })
     }
   ], (err, resp) => {
     value = value * (fromPrice / toPrice) * (1.0 - FEE_PERCENTAGE)
+    console.log('value', value, '------------------------------------------------------------------------------------------------')
     value = value * Math.pow(10, toToken['decimals'])
     cb(value)
   })
