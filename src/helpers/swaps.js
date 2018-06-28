@@ -8,7 +8,7 @@ import { ADDRESS as SWAP_ADDRESS } from "../config/swaps";
 import { tokens } from "./tokens";
 
 
-export const isValidEthereumSwap = (txHash) => {
+export const isValidEthereumSwap = (txHash, cb) => {
   let receipt = null;
   let tx = null;
   let fromAddr = null;

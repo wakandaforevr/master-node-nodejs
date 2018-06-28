@@ -7,7 +7,6 @@ import { BTCHelper } from '../helpers/btc'
 
 export const getAvailableTokens = (req, res) => {
   let dailyCount = [];
-  // token = Object.assign([], TOKENS)
   let token = JSON.parse(JSON.stringify(TOKENS));
 
   async.eachSeries(token, (item, next) => {
@@ -59,9 +58,8 @@ export const tokenSwapRawTransaction = (req, res) => {
             global.db.collection('swaps').insertOne({
               'from_symbol': fromToken['symbol'],
               'to symbol': toToken['symbol'],
-              'from_address': ADDRESS,
+              'from_address': SWAP_ADDRESS,
               'to_address': toAddr,
-              'tx_data': txData,
               'tx_hash_0': txHash,
               'time_0': parseInt(Date.now() / 1000),
               'status': 0

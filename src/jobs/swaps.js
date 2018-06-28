@@ -59,7 +59,7 @@ const transfer = (key, toAddr, value, toSymbol, cb) => {
         })
       }
     })
-  } else if (BTC_BASED_COINS.includes(toSymbol)) {
+  } else if (BTC_BASED_COINS[toSymbol]) {
     BTCHelper.transfer(toAddr, value, toSymbol, (txHash1) => {
       let err = txHash1 ? true : false;
       if (!err && txHash1) {
@@ -91,12 +91,12 @@ const checkTx = (swaps, cb) => {
         isValidEthereumSwap(txHash0, (err, details) => {
           if (!err) {
             let toAddr = details.fromAddr;
-            let value = detailstxValue;
+            let value = details.txValue;
             let fromToken = details.token;
             let toToken = tokens.getToken(toSymbol)
             tokens.exchange(fromToken, toToken, value, (val) => {
               value = val
-              if (BTC_BASED_COINS.includes(toSymbol)) {
+              if (BTC_BASED_COINS[toSymbol]) {
                 transfer(txHash0, toAddr, value, toSymbol, () => {
                   console.log('swapped ERC')
                   iterate()
@@ -109,7 +109,7 @@ const checkTx = (swaps, cb) => {
             })
           }
         })
-      } else if (BTC_BASED_COINS.includes(fromSymbol)) {
+      } else if (BTC_BASED_COINS[fromSymbol]) {
         let fromAddr = swap['from_address'];
         let toAddr = swap['to_address'];
         let fromToken = tokens.getToken(fromSymbol)

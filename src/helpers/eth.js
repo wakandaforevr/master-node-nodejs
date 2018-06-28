@@ -149,7 +149,7 @@ export const transfer = (fromAddr, toAddr, amount, symbol, privateKey, net, cb) 
 }
 
 export const transferErc20 = (fromAddr, toAddr, amount, symbol, privateKey, net, cb) => {
-  getValidNonce(fromAddrm, net, (nonce) => {
+  getValidNonce(fromAddr, net, (nonce) => {
     ERC20Manager[net][symbol].transferAmount(toAddr, amount, privateKey, nonce, (err, txHash) => {
       cb(err, txHash)
     })
