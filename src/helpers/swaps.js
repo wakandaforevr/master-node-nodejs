@@ -46,7 +46,7 @@ export const isValidEthereumSwap = (txHash, cb) => {
         })
       } else {
         next({
-          status: 0,
+          status: -1,
           message: 'Failed transaction.'
         })
       }

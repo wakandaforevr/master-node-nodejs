@@ -54,7 +54,7 @@ const transfer = (key, toAddr, value, toSymbol, cb) => {
         updateStatus(key, {
           'status': 0,
           'message': 'Error occurred while initiating transaction.'
-        }, () => {
+        }, null, () => {
           cb()
         })
       }
@@ -73,7 +73,7 @@ const transfer = (key, toAddr, value, toSymbol, cb) => {
         updateStatus(key, {
           'status': 0,
           'message': 'Error occurred while initiating transaction.'
-        }, () => {
+        }, null, () => {
           cb()
         })
       }
@@ -104,7 +104,7 @@ const checkTx = (swaps, cb) => {
               }
             })
           } else {
-            updateStatus(txHash0, err, () => {
+            updateStatus(txHash0, err, null, () => {
               iterate()
             })
           }
@@ -138,7 +138,7 @@ const checkTx = (swaps, cb) => {
 
 export const swaps = (data) => {
   if (data.message === 'start') {
-    scheduleJob('0 * * * * *', () => {
+    scheduleJob('*/2 * * * * *', () => {
       waterfall([
         (next) => {
           dbs((err, dbo) => {
