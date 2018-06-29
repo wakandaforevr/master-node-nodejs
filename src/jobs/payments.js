@@ -19,7 +19,7 @@ export const payments = (message) => {
         (next) => {
           if (currentTime.getHours() == hour && currentTime.getMinutes() == minute) {
             dbo.dbs((err, dbo) => {
-              db = dbo.db('sentinel1')
+              db = dbo.db('sentinel')
               next()
             })
           } else {
