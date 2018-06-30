@@ -9,6 +9,7 @@ import NodeRoutes from './node.routes';
 import ClientRoutes from './client.routes';
 import StatsRoutes from './stats.routes';
 import TokenRoutes from './token.routes';
+import ValidationRoutes from './nodeValidation.routes'
 import db from '../db/db'
 import { app } from '../app'
 
@@ -45,6 +46,7 @@ routes.use('/client', ClientRoutes);
 routes.use('/node', NodeRoutes);
 routes.use('/stats', StatsRoutes);
 routes.use('/swaps', TokenRoutes);
+routes.use('/validations', ValidationRoutes)
 
 routes.post('/logs/error', ErrorController.logTheError);
 routes.post('/dev/free', DevController.getFreeAmount);

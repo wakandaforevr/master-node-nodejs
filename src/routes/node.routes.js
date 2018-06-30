@@ -1,8 +1,6 @@
 import { Router } from 'express';
 import * as NodeController from '../controllers/node.controller';
 import * as AccountController from '../controllers/account.controller';
-import * as VpnController from '../controllers/vpn.controller';
-import * as VpnValidations from '../validations/vpn.validation';
 
 const routes = new Router();
 
