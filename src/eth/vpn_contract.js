@@ -41,7 +41,7 @@ VpnServiceManager.prototype.setInitialPayment = function (accountAddr, nonce, is
   }
 
   let tx = new Tx(rawTx);
-  tx.sign(new Buffer(COINBASE_PRIVATE_KEY));
+  tx.sign(Buffer.from(COINBASE_PRIVATE_KEY, 'hex'));
   let serializedTx = tx.serialize();
 
   this.net.web3.eth.sendRawTransaction('0x' + serializedTx.toString('hex'), (err, txHash) => {

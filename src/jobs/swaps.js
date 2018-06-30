@@ -61,7 +61,7 @@ const transfer = (key, toAddr, value, toSymbol, cb) => {
     })
   } else if (BTC_BASED_COINS[toSymbol]) {
     BTCHelper.transfer(toAddr, value, toSymbol, (txHash1) => {
-      let err = txHash1 ? true : false;
+      let err = txHash1 ? false : true;
       if (!err && txHash1) {
         updateStatus(key, {
           'status': 1,
@@ -91,17 +91,18 @@ const checkTx = (swaps, cb) => {
         isValidEthereumSwap(txHash0, (err, details) => {
           if (!err) {
             let toAddr = details.fromAddr;
-            let value = details.txValue;
+            let value = details.tokenValue;
             let fromToken = details.token;
             let toToken = tokens.getToken(toSymbol)
             tokens.exchange(fromToken, toToken, value, (val) => {
               value = val
               if (BTC_BASED_COINS[toSymbol]) {
-                transfer(txHash0, toAddr, value, toSymbol, () => {
-                  console.log('swapped ERC')
-                  iterate()
-                })
+                toAddr = swap['to_address']
               }
+              transfer(txHash0, toAddr, value, toSymbol, () => {
+                console.log('swapped ERC')
+                iterate()
+              })
             })
           } else {
             updateStatus(txHash0, err, null, () => {
@@ -116,7 +117,7 @@ const checkTx = (swaps, cb) => {
         let toToken = tokens.getToken(toSymbol)
         BTCHelper.getBalance(fromAddr, fromSymbol, (val) => {
           if (val && val > 0) {
-            tokens.exchange(fromAddr, toAddr, value, toSymbol, (value) => {
+            tokens.exchange(fromToken, toToken, val, (value) => {
               transfer(fromAddr, toAddr, value, toSymbol, () => {
                 console.log('swapped BTC')
                 iterate()
@@ -138,7 +139,7 @@ const checkTx = (swaps, cb) => {
 
 export const swaps = (data) => {
   if (data.message === 'start') {
-    scheduleJob('*/2 * * * * *', () => {
+    scheduleJob('0 * * * * *', () => {
       waterfall([
         (next) => {
           dbs((err, dbo) => {

@@ -23,7 +23,7 @@ export const getAvailableTokens = (req, res) => {
 export const tokenSwapRawTransaction = (req, res) => {
 
   let txData = req.body['tx_data'];
-  let toAddr = req.query['account_addr'];
+  let toAddr = req.body['account_addr'];
   let fromToken = tokens.getToken(req.body['from'])
   let toToken = tokens.getToken(req.body['to'])
   let value = 0 // parseInt(req.query['value']);
@@ -57,7 +57,7 @@ export const tokenSwapRawTransaction = (req, res) => {
           if (!err) {
             global.db.collection('swaps').insertOne({
               'from_symbol': fromToken['symbol'],
-              'to symbol': toToken['symbol'],
+              'to_symbol': toToken['symbol'],
               'from_address': SWAP_ADDRESS,
               'to_address': toAddr,
               'tx_hash_0': txHash,

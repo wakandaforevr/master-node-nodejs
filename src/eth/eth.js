@@ -69,9 +69,9 @@ ETHManager.prototype.sendRawTransaction = function (txData, cb) {
   })
 }
 
-ETHManager.prototype.transferAmount = function (fromAddr, toAddr, amount, privateKey, nonce, cb) {
+ETHManager.prototype.transferAmount = function (fromAddr, toAddr, amount, privateKey, cb) {
   let rawTx = {
-    nonce: nonce,
+    nonce: this.web3.eth.getTransactionCount(fromAddr),
     gasPrice: this.web3.toHex(this.web3.eth.gasPrice),
     gasLimit: this.web3.toHex(500000),
     to: toAddr,
@@ -79,7 +79,7 @@ ETHManager.prototype.transferAmount = function (fromAddr, toAddr, amount, privat
     data: ''
   }
   let tx = new Tx(rawTx);
-  tx.sign(new Buffer(privateKey));
+  tx.sign(Buffer.from(privateKey, 'hex'));
   let serializedTx = tx.serialize();
   this.web3.eth.sendRawTransaction('0x' + serializedTx.toString('hex'), (err, txHash) => {
     if (err) cb({ 'code': 107, 'error': err }, null)

@@ -1,5 +1,4 @@
 import axios from "axios";
-import { Z_BEST_COMPRESSION } from "zlib";
 import { BTC_BASED_COINS } from "../config/swaps";
 
 function BTCHelper(coins) {
@@ -27,6 +26,7 @@ BTCHelper.prototype.getBalance = function (address, symbol, cb) {
   let url = `http://${server['ip']}:${server['port']}/balance?address=${address}`
   axios.get(url)
     .then((resp) => {
+      resp = resp.data      
       if (resp['success']) cb(resp['balance'])
       else cb(null)
     })
@@ -43,6 +43,7 @@ BTCHelper.prototype.transfer = function (toAddress, value, symbol, cb) {
     'toAddress': toAddress,
     'value': value
   }).then((resp) => {
+    resp = resp.data
     if (resp['success']) cb(resp['txHash'])
     else cb(null)
   }).catch((error) => {

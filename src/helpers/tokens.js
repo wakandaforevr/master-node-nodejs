@@ -15,10 +15,10 @@ Tokens.prototype.getToken = function (symbol = null, address = null) {
   if (symbol) {
     return this.tokens[symbol]
   } else if (address) {
-    keys = Object.keys(this.tokens)
+    let keys = Object.keys(this.tokens)
     for (let i = 0; i < keys.length; i++) {
       let token = this.tokens[keys[i]]
-      if (token[address] === address)
+      if (token['address'] === address)
         return token
     }
   } else {
@@ -38,7 +38,7 @@ Tokens.prototype.getPrice = function (token, cb) {
     })
 }
 
-Tokens.prototype.calculateSents = function (token, value, cb) {
+/* Tokens.prototype.calculateSents = function (token, value, cb) {
   let sentUsd = null;
   let tokenUsd = null;
   let that = this;
@@ -71,7 +71,7 @@ Tokens.prototype.calculateSents = function (token, value, cb) {
     return cb(sents)
   })
 }
-
+ */
 Tokens.prototype.exchange = function (fromToken, toToken, value, cb) {
   value = value / (1.0 * (Math.pow(10, fromToken['decimals'])))
   let that = this;

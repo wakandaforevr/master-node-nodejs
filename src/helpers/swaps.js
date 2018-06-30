@@ -60,7 +60,7 @@ export const isValidEthereumSwap = (txHash, cb) => {
         if (toAddr == SWAP_ADDRESS) {
           next(null, {
             fromAddr: fromAddr,
-            txValue: txValue,
+            tokenValue: txValue,
             token: tokens.getToken('ETH')
           })
         } else {
@@ -70,7 +70,7 @@ export const isValidEthereumSwap = (txHash, cb) => {
           }, null)
         }
       } else if (txValue == 0 && txInput.length == 138) {
-        token = tokens.getToken(null, address = toAddr)
+        token = tokens.getToken(null, toAddr)
         if (token) {
           if (txInput.substring(0, 10) == '0xa9059cbb') {
             toAddr = txInput.substring(10, 74)
