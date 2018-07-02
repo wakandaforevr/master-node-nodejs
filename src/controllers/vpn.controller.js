@@ -6,7 +6,6 @@ import axios from 'axios';
 import { VpnServiceManager } from "../eth/vpn_contract";
 import * as EthHelper from '../helpers/eth';
 import { dbs } from '../db/db';
-import { SENT_BALANCE } from '../utils/config';
 import { DECIMALS } from '../config/vars';
 import { ADDRESS as COINBASE_ADDRESS } from '../config/eth';
 

@@ -16,8 +16,6 @@ import { app } from '../app'
 import * as DevController from '../dev/free'
 import * as ErrorController from '../controllers/error.controller'
 
-import * as config from '../utils/config'
-
 // Middlewares
 import logErrorService from '../services/log';
 

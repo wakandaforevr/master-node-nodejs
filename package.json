@@ -1,5 +1,5 @@
 {
-  "name": "SENTINEL",
+  "name": "sentinel",
   "description": "A NodeJS server for SENTINEL with ES6/ES7 features.",
   "version": "1.0.0",
   "author":"",
