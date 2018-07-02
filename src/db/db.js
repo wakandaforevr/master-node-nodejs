@@ -4,7 +4,9 @@ let url = "mongodb://localhost:27017/";
 
 export const dbs = (cb) => {
   MongoClient.connect(url, {
-    socketTimeoutMS:30000,
+    socketTimeoutMS: 30000,
+    autoReconnect: true,
+    poolSize:10
   }, (err, dbo) => {
 
     if (err) throw err;
