@@ -5,7 +5,6 @@
 import express from 'express';
 import chalk from 'chalk';
 
-import './config/database';
 import middlewaresConfig from './config/middlewares';
 import constants from './config/constants';
 import ApiRoutes from './routes';

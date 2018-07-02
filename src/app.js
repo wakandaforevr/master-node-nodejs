@@ -1,4 +1,4 @@
-let eth = require('./eth/eth');
+import eth from "./eth/eth";
 import { stats } from './jobs/statistics';
 import { alive } from './jobs/alive';
 import { payments } from './jobs/payments';
