@@ -1,24 +1,24 @@
-var schedule = require('node-schedule')
-var async = require('async')
-var dbo = require('../db/db')
+import { scheduleJob } from "node-schedule";
+import { waterfall, eachSeries } from "async";
+import { dbs } from "../db/db";
 
 import * as ETHHelper from '../helpers/eth';
 
 export const payments = (message) => {
-  var hour = 20;
-  var minute = 40;
-  var db = null;
-  var paidCount = 0;
-  var unPaidCount = 0;
+  let hour = 20;
+  let minute = 40;
+  let db = null;
+  let paidCount = 0;
+  let unPaidCount = 0;
 
   if (message === 'start') {
-    var j = schedule.scheduleJob('*/45 * * * * *', () => {
-      var currentTime = new Date()
-      var timestamp = Date.now() / 1000
-      async.waterfall([
+    let j = scheduleJob('*/45 * * * * *', () => {
+      let currentTime = new Date()
+      let timestamp = Date.now() / 1000
+      waterfall([
         (next) => {
           if (currentTime.getHours() == hour && currentTime.getMinutes() == minute) {
-            dbo.dbs((err, dbo) => {
+            dbs((err, dbo) => {
               db = dbo.db('sentinel')
               next()
             })
@@ -40,12 +40,12 @@ export const payments = (message) => {
             next(null, result)
           })
         }, (result, next) => {
-          async.eachSeries(result, (addr, iterate) => {
+          eachSeries(result, (addr, iterate) => {
             if (addr['_id']) {
               ETHHelper.getVpnUsage(addr['_id'], (err, usage) => {
                 if (!err) {
                   if (usage) {
-                    var sessions = usage['sessions'];
+                    let sessions = usage['sessions'];
                     sessions.map((session, index) => {
                       if (session['timestamp'] ) {
                         if (session['is_paid']) {

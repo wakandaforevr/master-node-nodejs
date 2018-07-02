@@ -1,3 +1,2 @@
-//  coding=utf-8
-module.exports.ADDRESS = ''.toLowerCase()
-module.exports.PRIVATE_KEY = ''
+export const ADDRESS = ''.toLowerCase();
+export const PRIVATE_KEY = '';

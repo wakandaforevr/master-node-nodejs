@@ -3,7 +3,7 @@ let async = require('async')
 let dbo = require('../db/db')
 
 
-export const alive = function (data) {
+export const alive = (data) => {
   let maxSecs = data.maxSecs || null;
   let db = null
   if (data.message == 'start') {
@@ -34,7 +34,5 @@ export const alive = function (data) {
         console.log('alive')
       })
     })
-  } else if (data.message == 'stop') {
-    process.kill(process.id)
   }
 }
