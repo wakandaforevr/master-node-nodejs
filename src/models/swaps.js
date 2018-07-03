@@ -1,6 +1,8 @@
-import { Schema, model } from "mongoose";
+import mongoose from "mongoose";
 
-var swapSchema = new Schema({
+let Schema = mongoose.Schema
+
+let swapSchema = new Schema({
   from_symbol: String,
   to_symbol: String,
   from_address: String,
@@ -9,4 +11,4 @@ var swapSchema = new Schema({
   status: Number
 });
 
-export const Swaps = model('swaps', swapSchema);
+export const Swaps = mongoose.model('Swap', swapSchema);

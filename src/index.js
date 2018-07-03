@@ -10,6 +10,9 @@ import constants from './config/constants';
 import ApiRoutes from './routes';
 
 import { dbs } from "./db/db";
+import { dbo } from './db/database'
+
+dbo()
 
 dbs(() => {
   console.log(chalk.green.bold(

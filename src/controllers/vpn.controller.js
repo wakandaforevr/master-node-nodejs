@@ -8,7 +8,7 @@ import * as EthHelper from '../helpers/eth';
 import { dbs } from '../db/db';
 import { DECIMALS } from '../config/vars';
 import { ADDRESS as COINBASE_ADDRESS } from '../config/eth';
-import { Nodes } from "../models/nodes";
+import { Nodes } from "../models";
 import { BTC_BASED_COINS } from '../config/swaps';
 
 /**

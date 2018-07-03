@@ -1,6 +1,8 @@
-import { Schema, model } from "mongoose";
+import mongoose from "mongoose";
 
-var usageSchema = new Schema({
+let Schema = mongoose.Schema
+
+let usageSchema = new Schema({
   from_addr: String,
   to_addr: String,
   sent_bytes: Number,
@@ -9,4 +11,4 @@ var usageSchema = new Schema({
   timestamp: Number
 });
 
-export const Usage = model('usages', usageSchema);
+export const Usage = mongoose.model('Usage', usageSchema);

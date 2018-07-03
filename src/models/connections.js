@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 let Schema = mongoose.Schema
 
-var connectionSchema = new Schema({
+let connectionSchema = new Schema({
   usage: { down: Number, up: Number },
   session_name: String,
   start_time: Number,
@@ -10,4 +10,4 @@ var connectionSchema = new Schema({
   end_time: Number
 });
 
-export const Connections = mongoose.model('connections', connectionSchema);
+export const Connections = mongoose.model('Connection', connectionSchema);

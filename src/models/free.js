@@ -1,7 +1,9 @@
-import { Schema, model } from "mongoose";
+import mongoose from "mongoose";
 
-var freeSchema = new Schema({
+let Schema = mongoose.Schema
+
+let freeSchema = new Schema({
   to_addr: String,
 });
 
-export const Free = model('frees', freeSchema);
+export const Free = mongoose.model('Free', freeSchema);

@@ -8,12 +8,14 @@ import { Swaps } from "./swaps";
 import { Usage } from "./usage";
 import { Validations } from "./validations";
 
-export const connections = Connections;
-export const free = Free;
-export const logs = Logs;
-export const nodes = Nodes;
-export const payments = Payments;
-export const statistics = Statistics;
-export const swaps = Swaps;
-export const usages = Usage;
-export const validations = Validations;
+export {
+  Connections,
+  Free,
+  Logs,
+  Nodes,
+  Payments,
+  Statistics,
+  Swaps,
+  Usage,
+  Validations
+}

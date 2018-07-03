@@ -1,6 +1,8 @@
-import { Schema, model } from "mongoose";
+import mongoose from "mongoose";
 
-var statisticSchema = new Schema({
+let Schema = mongoose.Schema
+
+let statisticSchema = new Schema({
   timestamp: Number,
   nodes: {
     up: Number,
@@ -8,4 +10,4 @@ var statisticSchema = new Schema({
   }
 });
 
-export const Statistics = model('statistics', statisticSchema);
+export const Statistics = mongoose.model('Statistic', statisticSchema);

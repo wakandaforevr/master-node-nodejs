@@ -1,9 +1,11 @@
-import { Schema, model } from "mongoose";
+import mongoose from "mongoose";
 
-var validationSchema = new Schema({
+let Schema = mongoose.Schema
+
+let validationSchema = new Schema({
   nodeID: String,
   invalidCount: Number,
   ipAddr: String
 });
 
-export const Validations = model('validations', validationSchema);
+export const Validations = mongoose.model('Validation', validationSchema);

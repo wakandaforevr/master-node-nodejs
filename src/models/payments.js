@@ -1,9 +1,11 @@
-import { Schema, model } from "mongoose";
+import mongoose from "mongoose";
 
-var paymentSchema = new Schema({
+let Schema = mongoose.Schema
+
+let paymentSchema = new Schema({
   timestamp: Number,
   paid_count: Number,
   unpaid_count: Number
 });
 
-export const Payments = model('payments', paymentSchema);
+export const Payments = mongoose.model('Payment', paymentSchema);
