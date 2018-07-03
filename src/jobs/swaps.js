@@ -139,23 +139,23 @@ const checkTx = (swaps, cb) => {
 
 export const swaps = (data) => {
   if (data.message === 'start') {
+
     scheduleJob('0 * * * * *', () => {
-      waterfall([
-        (next) => {
-          dbs((err, dbo) => {
-            db = dbo.db('sentinel');
-            next()
-          })
-        }, (next) => {
-          db.collection('swaps').find({ status: 0 }).toArray((err, swaps) => {
-            checkTx(swaps, () => {
-              next()
+      if (global.db) {
+        waterfall([
+          (next) => {
+            db = global.db;
+          }, (next) => {
+            db.collection('swaps').find({ status: 0 }).toArray((err, swaps) => {
+              checkTx(swaps, () => {
+                next()
+              })
             })
-          })
-        }
-      ], (err, resp) => {
-        console.log('swaps');
-      })
+          }
+        ], (err, resp) => {
+          console.log('swaps');
+        })
+      }
     })
   }
 }

@@ -8,6 +8,8 @@ import * as EthHelper from '../helpers/eth';
 import { dbs } from '../db/db';
 import { DECIMALS } from '../config/vars';
 import { ADDRESS as COINBASE_ADDRESS } from '../config/eth';
+import { Nodes } from "../models/nodes";
+import { BTC_BASED_COINS } from '../config/swaps';
 
 /**
 * @api {get} /client/vpn/list Get all unoccupied VPN servers list.
@@ -21,23 +23,44 @@ const calculateAmount = (usedBytes, pricePerGB) => {
 }
 
 const getNodeList = (vpnType, cb) => {
-  global.db.collection('nodes').find({
+  Nodes.find({
     'vpn.status': 'up',
     'vpn_type': vpnType
-  }).project({
-    '_id': 0,
-    'account_addr': 1,
-    'ip': 1,
-    'price_per_GB': 1,
-    'price_per_gb': 1,
-    'location': 1,
-    'net_speed.upload': 1,
-    'latency': 1,
-    'net_speed.download': 1
-  }).toArray((err, list) => {
-    if (err) cb(err, null);
-    else cb(null, list);
-  })
+  }, {
+      '_id': 0,
+      'account_addr': 1,
+      'ip': 1,
+      'price_per_GB': 1,
+      'price_per_gb': 1,
+      'location': 1,
+      'net_speed.upload': 1,
+      'latency': 1,
+      'net_speed.download': 1
+    }, (err, resp) => {
+      if (err) cb(err, null)
+      else cb(null, resp)
+    })
+
+  /* 
+  
+    global.db.collection('nodes').find({
+      'vpn.status': 'up',
+      'vpn_type': vpnType
+    }).project({
+      '_id': 0,
+      'account_addr': 1,
+      'ip': 1,
+      'price_per_GB': 1,
+      'price_per_gb': 1,
+      'location': 1,
+      'net_speed.upload': 1,
+      'latency': 1,
+      'net_speed.download': 1
+    }).toArray((err, list) => {
+      if (err) cb(err, null);
+      else cb(null, list);
+    })
+   */
 }
 
 /**
@@ -55,18 +78,18 @@ export const getVpnsList = (req, res) => {
         'message': 'error in getting vpn node list',
         'error': err
       })
-    }
-
-    async.each(list, (item, iterate) => {
-      item['price_per_GB'] = item['price_per_gb'];
-      delete item['price_per_gb'];
-      iterate();
-    }, () => {
-      res.send({
-        'success': true,
-        'list': list
+    } else {
+      async.each(list, (item, iterate) => {
+        item['price_per_GB'] = item['price_per_gb'];
+        delete item['price_per_gb'];
+        iterate();
+      }, () => {
+        res.send({
+          'success': true,
+          'list': list
+        })
       })
-    })
+    }
   })
 }
 

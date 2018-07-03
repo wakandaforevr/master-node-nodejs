@@ -9,6 +9,16 @@ import middlewaresConfig from './config/middlewares';
 import constants from './config/constants';
 import ApiRoutes from './routes';
 
+import { dbs } from "./db/db";
+
+dbs(() => {
+  console.log(chalk.green.bold(
+    `
+      MongoDB is running
+    `
+  ))
+})
+
 const app = express();
 
 // Wrap all the middlewares with the server
