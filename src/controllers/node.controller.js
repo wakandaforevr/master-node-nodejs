@@ -2,8 +2,11 @@ import async from 'async';
 import uuid from 'uuid';
 import { exec } from "child_process";
 
+import models from "../models";
 import EthHelper from '../helpers/eth';
 import { DECIMALS } from '../config/vars';
+import dbo from "../db/database";
+import database from '../db/database';
 
 const getLatency = (url, cb) => {
   const avgLatencyCmd = "ping -c 2 " + url + " | tail -1 | awk '{print $4}' | cut -d '/' -f 2"
@@ -59,7 +62,7 @@ const registerNode = (req, res) => {
         next();
       })
     }, (next) => {
-      global.db.collection('nodes').findOne({ "account_addr": accountAddr },
+      models.Nodes.findOne({ "account_addr": accountAddr },
         (err, node) => {
           if (!err) {
             next(null, node)
@@ -70,7 +73,7 @@ const registerNode = (req, res) => {
         })
     }, (node, next) => {
       if (!node) {
-        global.db.collection('nodes').insertOne({
+        let data = {
           'account_addr': accountAddr,
           'token': token,
           'ip': ip,
@@ -80,7 +83,11 @@ const registerNode = (req, res) => {
           'joined_on': joinedOn,
           'location': location,
           'net_speed': netSpeed
-        }, (err, resp) => {
+        }
+
+        let { Node } = models
+        let nodeData = new Node(data)
+        database.insert(nodeData, (err, resp) => {
           if (err) {
             next({
               'success': false,

@@ -1,21 +1,21 @@
-import { Connections } from "./connections";
+import { Connection } from "./connections";
 import { Free } from "./free";
-import { Logs } from "./logs";
-import { Nodes } from "./nodes";
-import { Payments } from "./payments";
-import { Statistics } from "./statistics";
-import { Swaps } from "./swaps";
+import { Log } from "./logs";
+import { Node } from "./nodes";
+import { Payment } from "./payments";
+import { Statistic } from "./statistics";
+import { Swap } from "./swaps";
 import { Usage } from "./usage";
-import { Validations } from "./validations";
+import { Validation } from "./validations";
 
-export {
-  Connections,
+export default {
+  Connection,
   Free,
-  Logs,
-  Nodes,
-  Payments,
-  Statistics,
-  Swaps,
+  Log,
+  Node,
+  Payment,
+  Statistic,
+  Swap,
   Usage,
-  Validations
+  Validation
 }

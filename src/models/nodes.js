@@ -27,6 +27,4 @@ let nodeSchema = new Schema({
   }
 });
 
-const Nodes = mongoose.model('Node', nodeSchema);
-
-export { Nodes };
+export const Node = mongoose.model('Node', nodeSchema);

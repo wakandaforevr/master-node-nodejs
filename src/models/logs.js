@@ -9,4 +9,4 @@ let logSchema = new Schema({
   log_type: String
 });
 
-export const Logs = mongoose.model('Log', logSchema);
+export const Log = mongoose.model('Log', logSchema);

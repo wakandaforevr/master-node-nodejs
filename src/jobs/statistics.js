@@ -17,6 +17,7 @@ export const stats = (message) => {
           (next) => {
             if (currentTime.getHours() == hours && currentTime.getMinutes() == minutes) {
               db = global.db
+              next()
             } else {
               next({}, null)
             }

@@ -145,6 +145,7 @@ export const swaps = (data) => {
         waterfall([
           (next) => {
             db = global.db;
+            next()
           }, (next) => {
             db.collection('swaps').find({ status: 0 }).toArray((err, swaps) => {
               checkTx(swaps, () => {

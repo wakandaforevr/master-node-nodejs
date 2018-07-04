@@ -10,4 +10,4 @@ let statisticSchema = new Schema({
   }
 });
 
-export const Statistics = mongoose.model('Statistic', statisticSchema);
+export const Statistic = mongoose.model('Statistic', statisticSchema);

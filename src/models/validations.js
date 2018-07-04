@@ -8,4 +8,4 @@ let validationSchema = new Schema({
   ipAddr: String
 });
 
-export const Validations = mongoose.model('Validation', validationSchema);
+export const Validation = mongoose.model('Validation', validationSchema);

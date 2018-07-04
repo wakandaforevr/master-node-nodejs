@@ -10,4 +10,4 @@ let connectionSchema = new Schema({
   end_time: Number
 });
 
-export const Connections = mongoose.model('Connection', connectionSchema);
+export const Connection = mongoose.model('Connection', connectionSchema);

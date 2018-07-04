@@ -11,4 +11,4 @@ let swapSchema = new Schema({
   status: Number
 });
 
-export const Swaps = mongoose.model('Swap', swapSchema);
+export const Swap = mongoose.model('Swap', swapSchema);

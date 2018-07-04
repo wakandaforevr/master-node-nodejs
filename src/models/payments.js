@@ -8,4 +8,4 @@ let paymentSchema = new Schema({
   unpaid_count: Number
 });
 
-export const Payments = mongoose.model('Payment', paymentSchema);
+export const Payment = mongoose.model('Payment', paymentSchema);

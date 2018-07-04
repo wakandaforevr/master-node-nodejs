@@ -19,7 +19,8 @@ export const payments = (message) => {
         waterfall([
           (next) => {
             if (currentTime.getHours() == hour && currentTime.getMinutes() == minute) {
-              db = dbo.db('sentinel')
+              db = global.db
+              next();
             } else {
               next({}, null)
             }
