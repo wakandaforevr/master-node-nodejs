@@ -2,7 +2,7 @@ import { scheduleJob } from "node-schedule";
 import { waterfall, eachSeries } from "async";
 import { dbs } from "../db/db";
 
-import * as ETHHelper from '../helpers/eth';
+import ETHHelper from '../helpers/eth';
 
 export const payments = (message) => {
   let hour = 0;

@@ -1,6 +1,6 @@
 import async from "async";
 
-export const updateCount = (req, res) => {
+const updateCount = (req, res) => {
   let data = req.body;
   let count = parseInt(data.invalidCount);
   async.waterfall([
@@ -56,7 +56,7 @@ export const updateCount = (req, res) => {
   })
 }
 
-export const getActiveNodes = (req, res) => {
+const getActiveNodes = (req, res) => {
   global.db.collection('nodes').find({ 'vpn.status': 'up' }).toArray((err, resp) => {
     console.log('err, resp', err, resp)
     if (!err) {
@@ -71,4 +71,9 @@ export const getActiveNodes = (req, res) => {
       })
     }
   })
+}
+
+export default {
+  updateCount,
+  getActiveNodes
 }

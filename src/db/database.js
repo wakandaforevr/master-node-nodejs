@@ -10,3 +10,14 @@ export const dbo = () => {
     }
   })
 }
+
+const insert = (Obj, cb) => {
+  Obj.save((err, resp) => {
+    if (err) cb(err, null)
+    else cb(null, resp)
+  })
+}
+
+export default {
+  dbo, insert
+}

@@ -1,4 +1,4 @@
-import * as EthHelper from '../helpers/eth';
+import EthHelper from '../helpers/eth';
 
 /**
 * @api {post} /client/raw-transaction Send raw transaction to specific chain.
@@ -9,7 +9,7 @@ import * as EthHelper from '../helpers/eth';
 * @apiSuccess {String} tx_hash Transaction hash.
 */
 
-export const rawTransaction = (req, res) => {
+const rawTransaction = (req, res) => {
   let txData = req.body['tx_data'];
   let net = req.body['net'];
 
@@ -28,4 +28,8 @@ export const rawTransaction = (req, res) => {
       })
     }
   })
+}
+
+export default {
+  rawTransaction
 }

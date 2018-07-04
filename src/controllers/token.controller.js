@@ -1,11 +1,11 @@
 import async from 'async'
 import { tokens } from '../helpers/tokens'
-import * as ETHHelper from '../helpers/eth'
+import ETHHelper from '../helpers/eth'
 import { ADDRESS as SWAP_ADDRESS, TOKENS } from '../config/swaps';
 import { DECIMALS } from '../config/vars';
 import { BTCHelper } from '../helpers/btc'
 
-export const getAvailableTokens = (req, res) => {
+const getAvailableTokens = (req, res) => {
   let dailyCount = [];
   let token = JSON.parse(JSON.stringify(TOKENS));
 
@@ -20,7 +20,7 @@ export const getAvailableTokens = (req, res) => {
   })
 }
 
-export const tokenSwapRawTransaction = (req, res) => {
+const tokenSwapRawTransaction = (req, res) => {
 
   let txData = req.body['tx_data'];
   let toAddr = req.body['account_addr'];
@@ -92,7 +92,7 @@ export const tokenSwapRawTransaction = (req, res) => {
   })
 }
 
-export const getExchangeValue = (req, res) => {
+const getExchangeValue = (req, res) => {
   let fromToken = tokens.getToken(req.query['from']);
   let toToken = tokens.getToken(req.query['to']);
   let value = parseFloat(req.query['value']);
@@ -111,7 +111,7 @@ export const getExchangeValue = (req, res) => {
   }
 }
 
-export const swapStatus = (req, res) => {
+const swapStatus = (req, res) => {
   let key = req.query['key'];
   let findObj = null;
 
@@ -137,7 +137,7 @@ export const swapStatus = (req, res) => {
   })
 }
 
-export const getNewAddress = (req, res) => {
+const getNewAddress = (req, res) => {
   let toAddress = req.body['account_addr']
   let fromToken = tokens.getToken(req.body['from'])
   let toToken = tokens.getToken(req.body['to'])
@@ -167,4 +167,12 @@ export const getNewAddress = (req, res) => {
       res.status(400).send(message)
     }
   })
+}
+
+export default {
+  getAvailableTokens,
+  tokenSwapRawTransaction,
+  getExchangeValue,
+  swapStatus,
+  getNewAddress
 }

@@ -19,13 +19,13 @@ const getEncodedSessionId = async (accountAddr, index, cb) => {
   return cb(sessionId)
 }
 
-export const createAccount = (password, cb) => {
+const createAccount = (password, cb) => {
   Eth_manager['main'].createAccount(password, (err, accountDetails) => {
     cb(err, accountDetails);
   });
 }
 
-export const getAccountAddress = (privateKey, cb) => {
+const getAccountAddress = (privateKey, cb) => {
   Eth_manager['main'].getAddress(privateKey,
     (err, address) => {
       let accountAddress = address.substr(2)
@@ -33,7 +33,7 @@ export const getAccountAddress = (privateKey, cb) => {
     })
 }
 
-export const getTxReceipt = (txHash, net, cb) => {
+const getTxReceipt = (txHash, net, cb) => {
   if (net === 'main') {
     Eth_manager['main'].getTransactionReceipt(txHash, (err, receipt) => {
       cb(err, receipt)
@@ -46,7 +46,7 @@ export const getTxReceipt = (txHash, net, cb) => {
   }
 }
 
-export const getTx = (txHash, net, cb) => {
+const getTx = (txHash, net, cb) => {
   if (net === 'main') {
     Eth_manager['main'].getTransaction(txHash, (err, receipt) => {
       cb(err, receipt)
@@ -59,7 +59,7 @@ export const getTx = (txHash, net, cb) => {
   }
 }
 
-export const getTxCount = (accountAddr, net, cb) => {
+const getTxCount = (accountAddr, net, cb) => {
   if (net == 'main') {
     Eth_manager['main'].getTransactionCount(accountAddr, (err, txCount) => {
       cb(txCount)
@@ -71,7 +71,7 @@ export const getTxCount = (accountAddr, net, cb) => {
   }
 }
 
-export const getValidNonce = (accountAddr, net, cb) => {
+const getValidNonce = (accountAddr, net, cb) => {
   let key = accountAddr + '_' + net;
   let previousNonce = redisClient.get(key);
   let error = null;
@@ -103,7 +103,7 @@ export const getValidNonce = (accountAddr, net, cb) => {
   }
 }
 
-export const getBalances = (accountAddr, cb) => {
+const getBalances = (accountAddr, cb) => {
   let balances = {
     main: {
       eths: null,
@@ -134,7 +134,7 @@ export const getBalances = (accountAddr, cb) => {
   }
 }
 
-export const transfer = (fromAddr, toAddr, amount, symbol, privateKey, net, cb) => {
+const transfer = (fromAddr, toAddr, amount, symbol, privateKey, net, cb) => {
   if (symbol == 'ETH') {
     transferEths(fromAddr, toAddr, amount, privateKey, net,
       (err, resp) => {
@@ -148,7 +148,7 @@ export const transfer = (fromAddr, toAddr, amount, symbol, privateKey, net, cb) 
   }
 }
 
-export const transferErc20 = (fromAddr, toAddr, amount, symbol, privateKey, net, cb) => {
+const transferErc20 = (fromAddr, toAddr, amount, symbol, privateKey, net, cb) => {
   getValidNonce(fromAddr, net, (nonce) => {
     ERC20Manager[net][symbol].transferAmount(toAddr, amount, privateKey, nonce, (err, txHash) => {
       cb(err, txHash)
@@ -156,7 +156,7 @@ export const transferErc20 = (fromAddr, toAddr, amount, symbol, privateKey, net,
   })
 }
 
-export const transferEths = (fromAddr, toAddr, amount, privateKey, net, cb) => {
+const transferEths = (fromAddr, toAddr, amount, privateKey, net, cb) => {
   if (net == 'main') {
     Eth_manager['main'].transferAmount(fromAddr, toAddr, amount, privateKey, (err, txHash) => {
       cb(err, txHash)
@@ -168,7 +168,7 @@ export const transferEths = (fromAddr, toAddr, amount, privateKey, net, cb) => {
   }
 }
 
-export const rawTransaction = (txData, net, cb) => {
+const rawTransaction = (txData, net, cb) => {
   if (net == 'main') {
     Eth_manager['main'].sendRawTransaction(txData,
       (err, txHash) => {
@@ -183,26 +183,26 @@ export const rawTransaction = (txData, net, cb) => {
   }
 }
 
-export const getInitialPayment = (accountAddr, cb) => {
+const getInitialPayment = (accountAddr, cb) => {
   VpnServiceManager.getInitialPayment(accountAddr, (err, isPayed) => {
     cb(err, isPayed)
   })
 }
 
-export const getDueAmount = (accountAddr, cb) => {
+const getDueAmount = (accountAddr, cb) => {
   VpnServiceManager.getDueAmount(accountAddr,
     (err, dueAmount) => {
       cb(err, dueAmount);
     });
 }
 
-export const getVpnSessionCount = (accountAddr, cb) => {
+const getVpnSessionCount = (accountAddr, cb) => {
   VpnServiceManager.getVpnSessionCount(accountAddr, (err, sessions) => {
     cb(err, sessions);
   })
 }
 
-export const getLatestVpnUsage = (accountAddr, cb) => {
+const getLatestVpnUsage = (accountAddr, cb) => {
   getVpnSessionCount(accountAddr, (err, sessionsCount) => {
     if (!err && sessionsCount > 0) {
       getEncodedSessionId(accountAddr, sessionsCount - 1, (sessionId) => {
@@ -227,7 +227,7 @@ export const getLatestVpnUsage = (accountAddr, cb) => {
   })
 }
 
-export const getVpnUsage = async (accountAddr, cb) => {
+const getVpnUsage = async (accountAddr, cb) => {
   let usage = {
     'due': 0,
     'stats': {
@@ -272,7 +272,7 @@ export const getVpnUsage = async (accountAddr, cb) => {
   })
 }
 
-export const payVpnSession = (fromAddr, amount, sessionId, net, txData, paymentType, cb) => {
+const payVpnSession = (fromAddr, amount, sessionId, net, txData, paymentType, cb) => {
   let errors = []
   let txHashes = []
 
@@ -311,7 +311,7 @@ export const payVpnSession = (fromAddr, amount, sessionId, net, txData, paymentT
   })
 }
 
-export const addVpnUsage = (fromAddr, toAddr, sentBytes, sessionDuration, amount, timeStamp, cb) => {
+const addVpnUsage = (fromAddr, toAddr, sentBytes, sessionDuration, amount, timeStamp, cb) => {
   let err = null;
   let txHash = null;
   let makeTx = false;
@@ -404,7 +404,7 @@ export const addVpnUsage = (fromAddr, toAddr, sentBytes, sessionDuration, amount
   })
 }
 
-export const free = (toAddr, eths, sents, cb) => {
+const free = (toAddr, eths, sents, cb) => {
   let errors = [], txHashes = []
 
   let PRIVATE_KEY = Buffer.from(COINBASE_PRIVATE_KEY, 'hex');
@@ -425,4 +425,26 @@ export const free = (toAddr, eths, sents, cb) => {
       cb(errors, txHashes);
     }
   });
+}
+
+export default {
+  createAccount,
+  getAccountAddress,
+  getTxReceipt,
+  getTx,
+  getTxCount,
+  getValidNonce,
+  getBalances,
+  transfer,
+  transferErc20,
+  transferEths,
+  rawTransaction,
+  getInitialPayment,
+  getDueAmount,
+  getVpnSessionCount,
+  getLatestVpnUsage,
+  getVpnUsage,
+  payVpnSession,
+  addVpnUsage,
+  free,
 }

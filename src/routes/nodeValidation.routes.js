@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { updateCount, getActiveNodes } from "../controllers/validation.controller";
+import ValidationController from "../controllers/validation.controller";
 
 let routes = new Router()
 
@@ -15,7 +15,7 @@ routes.post('/', (req, res) => {
   })
 })
 
-routes.get('/active', getActiveNodes);
-routes.post('/count', updateCount);
+routes.get('/active', ValidationController.getActiveNodes);
+routes.post('/count', ValidationController.updateCount);
 
 export default routes

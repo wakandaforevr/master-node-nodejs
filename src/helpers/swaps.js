@@ -2,7 +2,7 @@ import ltrim from "ltrim";
 import zfill from "zfill";
 import { waterfall } from "async";
 
-import * as EthHelper from "./eth";
+import EthHelper from "./eth";
 import { ADDRESS as SWAP_ADDRESS } from "../config/swaps";
 
 import { tokens } from "./tokens";

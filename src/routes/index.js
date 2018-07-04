@@ -13,8 +13,8 @@ import ValidationRoutes from './nodeValidation.routes'
 import db from '../db/db'
 import { app } from '../app'
 
-import * as DevController from '../dev/free'
-import * as ErrorController from '../controllers/error.controller'
+import DevController from '../dev/free'
+import ErrorController from '../controllers/error.controller'
 
 // Middlewares
 import logErrorService from '../services/log';

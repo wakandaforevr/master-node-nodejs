@@ -4,7 +4,7 @@ import uuid from 'uuid'
 import axios from 'axios';
 
 import { VpnServiceManager } from "../eth/vpn_contract";
-import * as EthHelper from '../helpers/eth';
+import EthHelper from '../helpers/eth';
 import { dbs } from '../db/db';
 import { DECIMALS } from '../config/vars';
 import { ADDRESS as COINBASE_ADDRESS } from '../config/eth';
@@ -70,7 +70,7 @@ const getNodeList = (vpnType, cb) => {
  * @apiSuccess {Object[]} list Details of all VPN servers.
  */
 
-export const getVpnsList = (req, res) => {
+const getVpnsList = (req, res) => {
   getNodeList('openvpn', (err, list) => {
     if (err) {
       res.send({
@@ -100,7 +100,7 @@ export const getVpnsList = (req, res) => {
  * @apiSuccess {Object[]} list Details of all Socks servers.
  */
 
-export const getSocksList = (req, res) => {
+const getSocksList = (req, res) => {
   getNodeList('socks5', (err, list) => {
     if (err) {
       res.send({
@@ -131,7 +131,7 @@ export const getSocksList = (req, res) => {
 * @apiSuccess {Object} usage Current VPN usage.
 */
 
-export const getCurrentVpnUsage = (req, res) => {
+const getCurrentVpnUsage = (req, res) => {
   let accountAddr = req.body['account_addr']
   accountAddr = accountAddr.toLowerCase();
   let sessionName = req.body['session_name']
@@ -173,7 +173,7 @@ export const getCurrentVpnUsage = (req, res) => {
 * @apiSuccess {String} vpnAddr VPN server account address.
 */
 
-export const getVpnCredentials = (req, res) => {
+const getVpnCredentials = (req, res) => {
   let accountAddr = req.body['account_addr'];
   let vpnAddr = req.body['vpn_addr'];
 
@@ -298,7 +298,7 @@ export const getVpnCredentials = (req, res) => {
 * @apiSuccess {String[]} txHashes Transaction hashes.
 */
 
-export const payVpnUsage = (req, res) => {
+const payVpnUsage = (req, res) => {
   let paymentType = req.body['payment_type']
   let txData = req.body['tx_data']
   let net = req.body['net']
@@ -338,7 +338,7 @@ export const payVpnUsage = (req, res) => {
  * @apiSuccess {String} tx_hash Transaction hash.
  */
 
-export const reportPayment = (req, res) => {
+const reportPayment = (req, res) => {
   let fromAddr = req.body['from_addr']
   let amount = parseInt(req.body['amount'])
   let sessionId = parseInt(req.body['session_id'])
@@ -370,7 +370,7 @@ export const reportPayment = (req, res) => {
 * @apiSuccess {Object[]} usage VPN usage details.
 */
 
-export const getVpnUsage = (req, res) => {
+const getVpnUsage = (req, res) => {
   let accountAddress = req.body['account_addr'];
   accountAddress = accountAddress.toLowerCase();
 
@@ -390,7 +390,7 @@ export const getVpnUsage = (req, res) => {
   });
 }
 
-export const updateConnection = (req, res) => {
+const updateConnection = (req, res) => {
 
   let accountAddr = req.body['account_addr'].toLowerCase()
   let connections = req.body['connections']
@@ -500,4 +500,15 @@ export const updateConnection = (req, res) => {
       if (err) res.send(err)
       else res.send(resp)
     })
+}
+
+export default {
+  getVpnsList,
+  getSocksList,
+  getCurrentVpnUsage,
+  getVpnCredentials,
+  payVpnUsage,
+  reportPayment,
+  getVpnUsage,
+  updateConnection
 }

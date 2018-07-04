@@ -4,7 +4,7 @@ import ltrim from "ltrim";
 import zfill from "zfill";
 
 import { dbs } from "../db/db";
-import * as EthHelper from "../helpers/eth";
+import EthHelper from "../helpers/eth";
 import { tokens } from '../helpers/tokens';
 import { isValidEthereumSwap } from "../helpers/swaps";
 import { BTCHelper } from "../helpers/btc";

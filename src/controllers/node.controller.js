@@ -1,10 +1,8 @@
 import async from 'async';
 import uuid from 'uuid';
-import dateTime from 'date-time'
 import { exec } from "child_process";
 
-import { dbs } from '../db/db';
-import * as EthHelper from '../helpers/eth'
+import EthHelper from '../helpers/eth';
 import { DECIMALS } from '../config/vars';
 
 const getLatency = (url, cb) => {
@@ -34,7 +32,7 @@ const calculateAmount = (usedBytes, pricePerGB) => {
 * @apiSuccess {String} message Node registered successfully.
 */
 
-export const registerNode = (req, res) => {
+const registerNode = (req, res) => {
   let accountAddr = req.body['account_addr']
   let pricePerGB = parseFloat(req.body['price_per_gb']) || parseFloat(req.body['price_per_GB'])
   let ip = req.body['ip']
@@ -142,7 +140,7 @@ export const registerNode = (req, res) => {
 * @apiSuccess {String} message Node info updated successfully.
 */
 
-export const updateNodeInfo = (req, res) => {
+const updateNodeInfo = (req, res) => {
   let token = req.body['token'];
   let accountAddr = req.body['account_addr'];
   let info = req.body['info'];
@@ -234,7 +232,7 @@ export const updateNodeInfo = (req, res) => {
 * @apiSuccess {Object[]} tx_hashes list transaction hashes.
 */
 
-export const updateConnections = (req, res) => {
+const updateConnections = (req, res) => {
   let token = req.body['token']
   let accountAddr = req.body['account_addr']
   let connections = req.body['connections']
@@ -369,7 +367,7 @@ export const updateConnections = (req, res) => {
 * @apiSuccess {String} message Node deregistred successfully.
 */
 
-export const deRegisterNode = (req, res) => {
+const deRegisterNode = (req, res) => {
   let accountAddr = req.body['account_addr'];
   let token = req.body['token'];
 
@@ -409,7 +407,7 @@ export const deRegisterNode = (req, res) => {
 * @apiSuccess {String} message VPN usage data will be added soon.
 */
 
-export const addVpnUsage = (req, res) => {
+const addVpnUsage = (req, res) => {
   let fromAddr = req.body['fromAddr']
   let toAddr = req.body['toAddr']
   let sentBytes = parseInt(req.body['sentBytes'])
@@ -453,7 +451,7 @@ export const addVpnUsage = (req, res) => {
 * @apiSuccess {Object[]} stats Total daily data downloaded by the clients.
 */
 
-export const getDailyDataCount = (req, res) => {
+const getDailyDataCount = (req, res) => {
   let dailyCount = []
   async.waterfall([
     (next) => {
@@ -506,7 +504,7 @@ export const getDailyDataCount = (req, res) => {
 * @apiSuccess {Number} stats total data downloaded by the clients.
 */
 
-export const getTotalDataCount = (req, res) => {
+const getTotalDataCount = (req, res) => {
   let totalCount = []
   global.db.collection('connections').aggregate([{
     "$group": {
@@ -531,7 +529,7 @@ export const getTotalDataCount = (req, res) => {
 * @apiSuccess {Object[]} stats Data usage of last day.
 */
 
-export const getLastDataCount = (req, res) => {
+const getLastDataCount = (req, res) => {
   global.db.collection('connections').aggregate([
     { '$match': { 'start_time': { '$gte': (Date.now() / 1000) - (24 * 60 * 60) } } },
     {
@@ -563,7 +561,7 @@ export const getLastDataCount = (req, res) => {
 * @apiSuccess {Object[]} stats total nodes registered per day.
 */
 
-export const getDailyNodeCount = (req, res) => {
+const getDailyNodeCount = (req, res) => {
   let dailyCount = []
 
   global.db.collection('nodes').aggregate([{
@@ -607,7 +605,7 @@ export const getDailyNodeCount = (req, res) => {
 * @apiSuccess {Number} stats total nodes registered.
 */
 
-export const getTotalNodeCount = (req, res) => {
+const getTotalNodeCount = (req, res) => {
   global.db.collection('statistics').aggregate([{
     '$project': {
       'total': {
@@ -657,7 +655,7 @@ export const getTotalNodeCount = (req, res) => {
 * @apiSuccess {Object[]} stats List of nodes active per day.
 */
 
-export const getDailyActiveNodeCount = (req, res) => {
+const getDailyActiveNodeCount = (req, res) => {
   global.db.collection('statistics').aggregate([{
     '$project': {
       'total': {
@@ -707,7 +705,7 @@ export const getDailyActiveNodeCount = (req, res) => {
 * @apiSuccess {Object} average Average list of node registered count per day.
 */
 
-export const getAverageNodesCount = (req, res) => {
+const getAverageNodesCount = (req, res) => {
   global.db.collection('nodes').aggregate([{
     '$group': {
       '_id': null,
@@ -756,7 +754,7 @@ export const getAverageNodesCount = (req, res) => {
 * @apiSuccess {Number} stats Active nodes count .
 */
 
-export const getActiveNodeCount = (req, res) => {
+const getActiveNodeCount = (req, res) => {
   global.db.collection('nodes').find({ "vpn.status": "up" }).toArray((err, data) => {
     let count = data.length
     if (err) res.send(err)
@@ -775,7 +773,7 @@ export const getActiveNodeCount = (req, res) => {
 * @apiSuccess {Object[]} stats List of daily using sessions count
 */
 
-export const getDailySessionCount = (req, res) => {
+const getDailySessionCount = (req, res) => {
   let dailyCount = []
   global.db.collection('connections').aggregate([{
     "$project": {
@@ -818,7 +816,7 @@ export const getDailySessionCount = (req, res) => {
 * @apiSuccess {Object[]} average List of average sessions count.
 */
 
-export const getAverageSessionsCount = (req, res) => {
+const getAverageSessionsCount = (req, res) => {
   global.db.collection('connections').aggregate([{
     '$group': {
       '_id': null,
@@ -867,7 +865,7 @@ export const getAverageSessionsCount = (req, res) => {
 * @apiSuccess {Number} count Active sessions count.
 */
 
-export const getActiveSessionCount = (req, res) => {
+const getActiveSessionCount = (req, res) => {
   global.db.collection('connections').find({ endTime: null }).toArray((err, data) => {
     let count = data.length
     if (err) res.send(err)
@@ -886,7 +884,7 @@ export const getActiveSessionCount = (req, res) => {
 * @apiSuccess {Object[]} stats Daily duration of the vpn usage.
 */
 
-export const getDailyDurationCount = (req, res) => {
+const getDailyDurationCount = (req, res) => {
   let dailyCount = []
   global.db.collection('connections').aggregate([{
     "$project": {
@@ -938,7 +936,7 @@ export const getDailyDurationCount = (req, res) => {
 * @apiSuccess {String} average List of daily average duration of the vpn.
 */
 
-export const getDailyAverageDuration = (req, res) => {
+const getDailyAverageDuration = (req, res) => {
   global.db.collection('connections').aggregate([{
     '$project': {
       'total': {
@@ -988,7 +986,7 @@ export const getDailyAverageDuration = (req, res) => {
 * @apiSuccess {Number} average daily average duration of vpn usage.
 */
 
-export const getAverageDuration = (req, res) => {
+const getAverageDuration = (req, res) => {
   let avgCount = []
   global.db.collection('connections').aggregate([{
     "$project": {
@@ -1026,7 +1024,7 @@ export const getAverageDuration = (req, res) => {
 * @apiSuccess {Number} average Average duration of the last day.
 */
 
-export const getLastAverageDuration = (req, res) => {
+const getLastAverageDuration = (req, res) => {
   global.db.collection('connections').aggregate([
     { '$match': { 'start_time': { '$gte': Date.now() / 1000 - (24 * 60 * 60) } } },
     {
@@ -1072,7 +1070,7 @@ export const getLastAverageDuration = (req, res) => {
 * @apiSuccess {Object} average The usage of the node.
 */
 
-export const getNodeStatistics = (req, res) => {
+const getNodeStatistics = (req, res) => {
   let account_addr = req.query.addr;
 
   global.db.collection('connections').aggregate([{
@@ -1118,7 +1116,7 @@ export const getNodeStatistics = (req, res) => {
   })
 }
 
-export const getDailyPaidSentsCount = (req, res) => {
+const getDailyPaidSentsCount = (req, res) => {
   global.db.collection('statistics').aggregate([{
     '$project': {
       'total': {
@@ -1152,7 +1150,7 @@ export const getDailyPaidSentsCount = (req, res) => {
   })
 }
 
-export const getDailyTotalSentsUsed = () => {
+const getDailyTotalSentsUsed = () => {
   global.db.collection('statistics').aggregate([{
     '$project': {
       'total': {
@@ -1188,7 +1186,7 @@ export const getDailyTotalSentsUsed = () => {
   })
 }
 
-export const getAveragePaidSentsCount = () => {
+const getAveragePaidSentsCount = () => {
   global.db.collection('payments').aggregate([{ '$group': { '_id': 0, 'AverageCount': { '$avg': '$paid_count' } } }])
     .toArray((err, avgCount) => {
       if (err) { res.send({ success: false, message: "error getting average paid sents count" }) }
@@ -1196,7 +1194,7 @@ export const getAveragePaidSentsCount = () => {
     })
 }
 
-export const getAverageTotalSentsCount = () => {
+const getAverageTotalSentsCount = () => {
   global.db.collection('payments').aggregate([
     {
       '$project': {
@@ -1209,4 +1207,32 @@ export const getAverageTotalSentsCount = () => {
     if (err) { res.send({ success: false, message: "error getting average total sents count" }) }
     else { res.send({ success: true, stats: avgCount }) }
   })
+}
+
+export default {
+  registerNode,
+  updateNodeInfo,
+  updateConnections,
+  deRegisterNode,
+  addVpnUsage,
+  getDailyDataCount,
+  getTotalDataCount,
+  getLastDataCount,
+  getDailyNodeCount,
+  getTotalNodeCount,
+  getDailyActiveNodeCount,
+  getAverageNodesCount,
+  getActiveNodeCount,
+  getDailySessionCount,
+  getAverageSessionsCount,
+  getActiveSessionCount,
+  getDailyDurationCount,
+  getDailyAverageDuration,
+  getAverageDuration,
+  getLastAverageDuration,
+  getNodeStatistics,
+  getDailyPaidSentsCount,
+  getDailyTotalSentsUsed,
+  getAveragePaidSentsCount,
+  getAverageTotalSentsCount
 }
