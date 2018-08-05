@@ -5,4 +5,6 @@ node_modules
 .npm
 
 .git
-.gitignore
+.gitignoren
+
+dist

@@ -1,15 +1,13 @@
 import { Router } from 'express';
 
-import * as AccountController from '../controllers/account.controller';
-import * as VpnController from '../controllers/vpn.controller';
-import * as TransactionController from '../controllers/transactions';
-import * as AccountValidations from '../validations/account.validation';
-import * as VpnValidations from '../validations/vpn.validation';
+import AccountController from '../controllers/account.controller';
+import VpnController from '../controllers/vpn.controller';
+import TransactionController from '../controllers/transactions';
 
 const routes = new Router();
 
-routes.post('/account', /* AccountValidations.validateCreateAccount */ AccountController.createAccount);
-routes.post('/account/balance', /* AccountValidations.getBalance */ AccountController.getBalance);
+routes.post('/account', AccountController.createAccount);
+routes.post('/account/balance', AccountController.getBalance);
 routes.post('/raw-transaction', TransactionController.rawTransaction);
 routes.post('/vpn', VpnController.getVpnCredentials);
 routes.post('/vpn/current', VpnController.getCurrentVpnUsage);

@@ -9,11 +9,12 @@ import NodeRoutes from './node.routes';
 import ClientRoutes from './client.routes';
 import StatsRoutes from './stats.routes';
 import TokenRoutes from './token.routes';
+import ValidationRoutes from './nodeValidation.routes'
+import db from '../db/db'
+import { app } from '../app'
 
-import * as DevController from '../dev/free'
-import * as ErrorController from '../controllers/error.controller'
-
-import APIError from '../services/error';
+import DevController from '../dev/free'
+import ErrorController from '../controllers/error.controller'
 
 // Middlewares
 import logErrorService from '../services/log';
@@ -22,6 +23,9 @@ const routes = new Router();
 
 const isDev = process.env.NODE_ENV === 'development';
 const isTest = process.env.NODE_ENV === 'test';
+
+if (!isTest)
+  app();
 
 routes.get('/', (req, res) => {
   res.status = 200
@@ -39,14 +43,16 @@ routes.post('/', (req, res) => {
 routes.use('/client', ClientRoutes);
 routes.use('/node', NodeRoutes);
 routes.use('/stats', StatsRoutes);
-routes.use('/tokens', TokenRoutes);
+routes.use('/swaps', TokenRoutes);
+routes.use('/validations', ValidationRoutes)
 
 routes.post('/logs/error', ErrorController.logTheError);
 routes.post('/dev/free', DevController.getFreeAmount);
 
-routes.all('*', (req, res, next) =>
-  next(new APIError('Not Found!', HTTPStatus.NOT_FOUND, true))
-);
+routes.all('*', (req, res, next) => {
+  console.log('404 api not found')
+  next()
+});
 
 routes.use(logErrorService);
 

@@ -1,10 +1,16 @@
-var MongoClient = require('mongodb').MongoClient;
-var url = "mongodb://localhost:27017/";
+import { MongoClient } from "mongodb";
+let url = "mongodb://localhost:27017/";
+
 
 export const dbs = (cb) => {
-  MongoClient.connect(url, function (err, dbo) {
-    if (err) cb(err, null);
-    cb(null, dbo);
+  MongoClient.connect(url, {
+    socketTimeoutMS: 30000,
+    autoReconnect: true,
+    poolSize: 10,
+    connectTimeoutMS: 30000,
+  }, (err, dbo) => {
+    if (err) throw err;
+    else cb(null, dbo);
   });
 }
 

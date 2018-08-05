@@ -1,24 +1,13 @@
-FROM node:7.10.0-alpine
+FROM node:8-alpine
 
-MAINTAINER Emanuel Quimper <quimperemanuel@gmail.com> <https://github.com/EQuimper>
+WORKDIR /root/
 
-# create app directory in container
-RUN mkdir -p /app
+ADD . /root/sentinel
 
-# set /app directory as default working directory
-WORKDIR /app
+ADD run.sh /root/
 
-ADD package.json yarn.lock /app/
+RUN apk update && apk upgrade && apk add bash g++ gcc gmp-dev libffi-dev make python2 python3 mongodb redis nano git  && mkdir -p /data/db
 
-# --pure-lockfile: Don’t generate a yarn.lock lockfile
-RUN yarn --pure-lockfile
-RUN yarn global add pm2
+CMD [ "sh", "run.sh" ]
 
-# copy all file from current dir to /app in container
-COPY . /app/
-
-# expose port 3000
 EXPOSE 3000
-
-# cmd to start service
-CMD ["pm2", "start", "processes.json", "--no-daemon"]
